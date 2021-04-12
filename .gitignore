@@ -1,0 +1,11 @@
+**.DS_Store
+.vscode
+.idea/*
+*.pyc
+*.egg-info*
+*__pycache__/*
+.idea
+dug-seis.log
+readInMatlab.asv
+matlab/
+dug_seis/gui/gui_dev.py

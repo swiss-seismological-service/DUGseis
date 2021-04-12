@@ -1,0 +1,41 @@
+QLabel#label1 {
+    background-color:   #ffffff;
+}
+QTabWidget {
+    background-color:   #e0f0ff;
+}
+QScrollArea {
+    background-color:   #ffe0f0;
+}
+XXQScrollArea > * {
+    background-color:   #f0ffe0;
+    border:             5px solid #f0ffe0;
+}
+XX[cssClass="indigo"] {
+    background-color:   #f0ffe0;
+    border:             5px solid #f0ffe0;
+}
+QToolTip {
+    padding:            2px;
+    background-color:   #ffffff;
+    color:              #000000;
+    border:             1px solid #808080;
+}
+#heading1 {
+    font-size:          20px;
+    font-weight:        bold;
+    margin-top:         20px;
+    margin-bottom:      5px;
+}
+#heading2 {
+    font-size:          18px;
+    font-weight:        bold;
+    margin-top:         12px;
+    margin-bottom:      5px;
+}
+#heading3 {
+    font-size:          16px;
+    font-weight:        bold;
+    margin-top:         2px;
+    margin-bottom:      2px;
+}
