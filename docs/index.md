@@ -5,7 +5,7 @@ micro-seismic data.
 
 [Github Repository](https://github.com/swiss-seismological-service/DUGseis)
 
-```{image} _static/dug_seis_logo.svg
+```{image} static/dug_seis_logo.svg
 :alt: DUGSeis Logo
 :width: 50%
 :align: center

@@ -8,7 +8,7 @@ dug-seis gui --operator="Your Name" --config=path/to/dug_seis_config.yaml
 
 which opens a window akin to the following:
 
-![GUI Screenshot](_static/gui_screenshot.png)
+![GUI Screenshot](static/gui_screenshot.png)
 
 It is largely divided into three sections (left, right, bottom):
 
