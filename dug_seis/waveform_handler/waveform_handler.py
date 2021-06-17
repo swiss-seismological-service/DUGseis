@@ -1,4 +1,26 @@
+# DUGSeis
+# Copyright (C) 2021 DUGSeis Authors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+Object used to orchestrate, cache, and facilitate waveform access within
+DUGSeis.
+"""
+
 import functools
+import hashlib
 import logging
 import re
 import pathlib
@@ -17,13 +39,13 @@ logger = logging.getLogger(__name__)
 
 FILENAME_REGEX = re.compile(
     r"""
-^                                                        # Beginning of string
-(\d{4})_(\d{2})_(\d{2})T(\d{2})_(\d{2})_(\d{2})_(\d{6})  # Start time as capture groups
-__                                                       #
-(\d{4})_(\d{2})_(\d{2})T(\d{2})_(\d{2})_(\d{2})_(\d{6})  # End time as capture groups
+^                                                              # Beginning of string
+(\d{4})_(\d{2})_(\d{2})T(\d{2})_(\d{2})_(\d{2})[_\.](\d{6})Z?  # Start time as capture groups
+__                                                             #
+(\d{4})_(\d{2})_(\d{2})T(\d{2})_(\d{2})_(\d{2})[_\.](\d{6})Z?  # End time as capture groups
 __
-.*                                                       # Rest of name
-$                                                        # End of string.
+.*                                                             # Rest of name
+$                                                              # End of string.
 """,
     re.VERBOSE,
 )
@@ -34,16 +56,18 @@ class WaveformHandler:
     Central class handling waveform access for DUGseis.
 
     Args:
-        waveform_folder: Folder containing the waveforms as ASDF files.
+        waveform_folders: Folders containing the waveforms as ASDF files.
         cache_folder: Some information about the files must be cached. Store
             that information here.
         index_sampling_rate_in_hz: The desired sampling rate of the waveform
             index.
+        start_time: Limit temporal range.
+        end_time: Limit temporal range.
     """
 
     def __init__(
         self,
-        waveform_folder: pathlib.Path,
+        waveform_folders: typing.List[pathlib.Path],
         cache_folder: pathlib.Path,
         index_sampling_rate_in_hz: int,
         start_time: obspy.UTCDateTime,
@@ -52,7 +76,7 @@ class WaveformHandler:
         self._start_time = start_time
         self._end_time = end_time
         self._index_sampling_rate_in_hz = index_sampling_rate_in_hz
-        self._waveform_folder = pathlib.Path(waveform_folder)
+        self._waveform_folders = [pathlib.Path(i) for i in waveform_folders]
         self._cache_folder = pathlib.Path(cache_folder)
         self._open_folder()
         self._build_cache()
@@ -78,6 +102,13 @@ class WaveformHandler:
         """
         return self._cache["receivers"]
 
+    @property
+    def channel_list(self) -> typing.List[str]:
+        """
+        Get a list of all channels.
+        """
+        return self._cache["receivers"]
+
     def _get_index_for_channel(self, channel_id: str) -> int:
         """
         Get the cache index for the channel id.
@@ -89,10 +120,16 @@ class WaveformHandler:
 
     @property
     def sampling_rate(self) -> float:
+        """
+        Sampling rate in Hz.
+        """
         return self._cache["data_sampling_rate_in_hz"]
 
     @property
     def dt(self) -> float:
+        """
+        Sample spacing in seconds.
+        """
         return 1.0 / self.sampling_rate
 
     @property
@@ -126,19 +163,17 @@ class WaveformHandler:
         return self._cache["cache_dt_ns"]
 
     @functools.lru_cache(maxsize=20)
-    def _get_open_asdf_file(self, filename: str) -> pyasdf.ASDFDataSet:
+    def _get_open_asdf_file(self, filename: pathlib.Path) -> pyasdf.ASDFDataSet:
         """
         Get an open ASDF file.
 
         Use a LRU cache to get fast repeated file accesses.
         """
-        return pyasdf.ASDFDataSet(
-            filename=str(self._waveform_folder / (filename + ".h5")), mode="r"
-        )
+        return pyasdf.ASDFDataSet(filename=str(filename), mode="r")
 
-    @functools.lru_cache(maxsize=100)
+    @functools.lru_cache(maxsize=200)
     def _get_channel_from_file(
-        self, filename: str, channel_id: str, waveform_tag: str
+        self, filename: pathlib.Path, channel_id: str
     ) -> obspy.Trace:
         """
         Get an open ASDF file.
@@ -147,8 +182,14 @@ class WaveformHandler:
         """
         # Get files - already cached.
         ds = self._get_open_asdf_file(filename)
-        st = ds.waveforms[".".join(channel_id.split(".")[:2])][waveform_tag]
-        assert len(st) == 1, "Multi-channel station unexpected"
+
+        sta = ds.waveforms[".".join(channel_id.split(".")[:2])]
+        items = [i for i in sta.list() if i.startswith(channel_id)]
+        if not len(items):
+            raise ValueError(f"Could not find data for channel '{channel_id}'")
+        assert len(items) == 1, f"{items}"
+        st = sta[items[0]]
+
         return st[0]
 
     def _build_cache(self):
@@ -156,17 +197,32 @@ class WaveformHandler:
 
         caches = []
 
+        filename_receivers_map = {}
+
         for name, info in tqdm.tqdm(
             self._files.items(), desc="Creating/updating cache"
         ):
-            caches.append(self._cache_single_file(name=name, info=info))
+            single_file_cache = self._cache_single_file(filename=name, info=info)
+            caches.append(single_file_cache)
+            filename_receivers_map[name] = set(single_file_cache["receivers"])
 
         # Combine everything into a single cache.
         self._cache = combine_caches(caches=caches)
 
-    def _cache_single_file(self, name: str, info: typing.Dict):
-        cache_file = self._cache_folder / f"{name}.npz"
-        waveform_file = self._waveform_folder / f"{name}.h5"
+        # Keep track of which file stores which receivers.
+        self._filename_receivers_map = filename_receivers_map
+
+    def _cache_single_file(self, filename: pathlib.Path, info: typing.Dict):
+        filename = filename.absolute()
+
+        # hash the filename
+        file_hash = hashlib.sha256()
+        file_hash.update(str(filename).encode())
+        file_hash_hex = file_hash.hexdigest()
+
+        cache_file = self._cache_folder / f"{filename.stem}__{file_hash_hex}.npz"
+
+        waveform_file = filename
         assert waveform_file.exists()
 
         stat = waveform_file.stat()
@@ -253,11 +309,11 @@ class WaveformHandler:
                 assert len(tags) == 1
                 tag = tags[0]
                 st = station[tag]
-                assert len(st) == 1
-                cache[st[0].id] = index_trace(
-                    trace=st[0],
-                    index_sampling_rate_in_hz=self._index_sampling_rate_in_hz,
-                )
+                for tr in st:
+                    cache[tr.id] = index_trace(
+                        trace=tr,
+                        index_sampling_rate_in_hz=self._index_sampling_rate_in_hz,
+                    )
 
         # Some sanity checks to make sure every trace is idencial.
         sr = set(i["index_sampling_rate_in_hz"] for i in cache.values())
@@ -307,11 +363,13 @@ class WaveformHandler:
         }
 
     def _open_folder(self):
-        logger.info(f"Opening waveform folder {self._waveform_folder} ...")
+        logger.info(f"Opening waveform {len(self._waveform_folders)} folder(s) ...")
         self._files = {}
 
         # Loop over all files and store some basic information.
-        files = [i for i in self._waveform_folder.glob("*__*__*.h5") if i.is_file()]
+        files = []
+        for folder in self._waveform_folders:
+            files.extend([i for i in folder.glob("*__*__*.h5") if i.is_file()])
         total_size = 0
         for f in files:
             m = re.match(FILENAME_REGEX, f.stem)
@@ -326,7 +384,7 @@ class WaveformHandler:
             if starttime > self._end_time or endtime < self._start_time:
                 continue
 
-            self._files[f.stem] = {
+            self._files[f] = {
                 "starttime": starttime,
                 "endtime": endtime,
                 "mtime": s.st_mtime,
@@ -337,8 +395,11 @@ class WaveformHandler:
         if not self._files:
             raise ValueError("Could not find any waveform data files.")
 
+        self._total_size = total_size
+        self._pretty_total_size = pretty_filesize(total_size)
+
         logger.info(
-            f"Found {len(self._files)} waveform files [{pretty_filesize(total_size)} in total]."
+            f"Found {len(self._files)} waveform files [{self._pretty_total_size} in total]."
         )
 
         self._figure_out_times()
@@ -364,18 +425,22 @@ class WaveformHandler:
         threshold = 0.01
         time_ranges = []
         for t in sorted(self._files.values(), key=lambda x: x["starttime"]):
+            # First time in the loop.
             if not time_ranges:
                 time_ranges.append([t["starttime"], t["endtime"]])
                 continue
+
+            # Latest time range.
             lr = time_ranges[-1]
-            if t["starttime"] < lr[1]:
-                raise ValueError(
-                    f"Time ranges don't match. Existing: {time_ranges}, new: {t}"
-                )
+
+            # New time range.
             if t["starttime"] > (lr[1] + threshold * mean_duration):
                 time_ranges.append([t["starttime"], t["endtime"]])
                 continue
-            lr[1] = t["endtime"]
+
+            if t["endtime"] > lr[1]:
+                lr[1] = t["endtime"]
+
         # Cannot really happen.
         assert time_ranges
         logger.info(f"Found {len(time_ranges)} time range(s) with waveform data.")
@@ -422,24 +487,60 @@ class WaveformHandler:
             min_values, max_values
         )
 
+    def get_waveforms(
+        self,
+        channel_ids: typing.List[str],
+        start_time: obspy.UTCDateTime,
+        end_time: obspy.UTCDateTime,
+    ) -> obspy.Stream:
+        """
+        Retrieve waveforms as an ObsPy Stream objects.
+
+        Args:
+            channel_ids: List of channel ids.
+            start_time: The start time of the requested data.
+            end_time: The end time of the requested data.
+        """
+        st = obspy.Stream()
+        for channel_id in channel_ids:
+            st.append(
+                self.get_waveform_data(
+                    channel_id=channel_id,
+                    start_time=start_time,
+                    end_time=end_time,
+                    npts=10000000000000,
+                    return_trace=True,
+                )
+            )
+        return st
+
     def get_waveform_data(
         self,
         channel_id: str,
         start_time: obspy.UTCDateTime,
         end_time: obspy.UTCDateTime,
         npts: int,
+        return_trace: bool = False,
     ):
+        """
+        Lower level waveform access. Please use the ``.get_waveforms()`` method
+        instead.
+        """
         # Get all the files that contain part of that trace.
         files = {
             key: value
             for key, value in self._files.items()
-            if value["starttime"] <= end_time and value["endtime"] > start_time
+            if value["starttime"] <= end_time
+            and value["endtime"] > start_time
+            and channel_id in self._filename_receivers_map[key]
         }
+
+        if not files:
+            raise ValueError("Could not find data.")
+
         st = obspy.Stream(
             traces=[
-                self._get_channel_from_file(
-                    filename=f, channel_id=channel_id, waveform_tag="raw_recording"
-                ).copy()
+                self._get_channel_from_file(filename=f, channel_id=channel_id).copy()
                 for f in files.keys()
             ]
         )
@@ -453,8 +554,10 @@ class WaveformHandler:
         assert len(st) == 1, "Merging failed somehow."
         tr = st[0]
 
+        if return_trace:
+            return tr
+
         # If it has too many samples, bin the data.
-        data_is_max_resolution = True
         if tr.stats.npts > npts * 2:
             factor = int(tr.stats.npts // npts)
             for _ in range(10):
@@ -478,7 +581,7 @@ class WaveformHandler:
 
                 # Fill the last sample that does not exactly fit.
                 if size != array_size:
-                    d = tr.data[size * factor:]
+                    d = tr.data[size * factor :]  # noqa
                     data[-1, 0] = d.min()
                     data[-1, 1] = d.max()
 

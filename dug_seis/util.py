@@ -1,153 +1,91 @@
-# Miscellaneous functions used in several modules
+# DUGSeis
+# Copyright (C) 2021 DUGSeis Authors
 #
-# :copyright:
-#    ETH Zurich, Switzerland
-# :license:
-#    GNU Lesser General Public License, Version 3
-#    (https://www.gnu.org/copyleft/lesser.html)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+"""
+Utility functionality useful across DUGSeis.
+"""
 
-import os
-import re
-import subprocess
-import sys
-import time
+import copy
+import datetime
+import logging
+import pathlib
 import typing
 
-from obspy import UTCDateTime
+import obspy
+import schema
+import tqdm
 
 
-def stream_copy(stream_src):
-    # adjustments because of bug in obspy Stats.copy
-    stream = stream_src.copy()
-    for idx in range(len(stream)):
-        stream[idx].stats.sampling_rate = stream_src[idx].stats.sampling_rate
-    return stream
+class _TqdmLoggingHandler(logging.StreamHandler):
+    """
+    Avoid tqdm progress bar interruption by logger's output to console
+
+    From https://stackoverflow.com/a/67257516
+    """
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            tqdm.tqdm.write(msg, end=self.terminator)
+        except RecursionError:
+            raise
+        except Exception:
+            self.handleError(record)
 
 
-def filename_to_int(filename, start_time):
-    '''
-    Integer with as many digits as start_time
+def setup_logging_to_file(
+    folder: typing.Optional[typing.Union[pathlib.Path, str]] = None,
+    log_level: str = "info",
+):
+    """
+    Helper function to setup the logging in a tqdm aware fashion.
 
-    Example for filename: 2017-02-09T13-24-50-225998Z_Grimsel.h5
-    The first 26 characters describe the time.
-    '''
-    s = ''.join(re.findall(r'\d+', filename[:26]))
-    start_int = int(re.sub(r'[^\d]', '', str(start_time)))
-    diff = len(str(start_int)) - len(s)
-    if diff > 0:
-        s += '0' * diff
-    return int(s[0:len(str(start_time))])
+    Args:
+        folder: Folder where the log file should be stored. If not given it will
+            only log to stdout.
+        log_level: Desired log level as a string.
+    """
 
+    # Root logger.
+    logger = logging.getLogger()
+    logger.setLevel(log_level.upper())
 
-def file_of_time(asdf_folder, start_time, file_length):
-    start_int = int(re.sub(r'[^\d]', '', str(start_time)))
+    # Custom formatter.
+    formatter = logging.Formatter("%(asctime)s %(levelname)-7s %(message)s")
 
-    # find last file with time before start_time
-    file = [f for f in sorted(os.listdir(asdf_folder)) if f.endswith('.h5')
-        and filename_to_int(f, start_time) <= start_int][-1]
+    # tqdm aware log handler.
+    ch = _TqdmLoggingHandler()
+    ch.setLevel(log_level.upper())
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
-    # check if start_time is in file time
-    diff = (UTCDateTime(timestr_to_UTCDateTime(file[:-3])) + file_length
-        - UTCDateTime(timestr_to_UTCDateTime(start_time)))
-    if diff < 0:
-        return None
-    return file
+    # Also log to file if desired.
+    if folder:
+        folder = pathlib.Path(folder)
+        now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        fh = logging.handlers.RotatingFileHandler(folder / f"dug-seis_{now}.log")
+        fh.setLevel(log_level.upper())
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
 
-
-def utc_format(utc, fmt):
-    if fmt == 'human_time':
-        f = utc.strftime('%f')
-        return utc.strftime('%H:%M:%S.') + f[:3] + '\'' + f[3:]
-    elif fmt == 'filename':
-        # shorten to 4 decimal places
-        return utc.strftime('%Y%m%d_%H%M%S_%f')[:-2]
-    elif fmt == 'key':
-        # display in event list of GUI
-        f = utc.strftime('%f')
-        return utc.strftime('%Y-%m-%d  %H:%M:%S.') + f[:3] + '\'' + f[3:]
-
-
-def timestr_to_UTCDateTime(timestr):
-    '''
-    Takes strings with arbitrary delimiters
-
-    order must be: YYYY dd mm HH SS frac
-    year must have 4 digits
-    all other parts must have 2 digits, except fractions of seconds
-    '''
-    s = ''.join(re.findall(r'\d+', timestr))
-    p = [s[i:i + 2] for i in range(0, len(s), 2)]
-    result = f'{p[0]}{p[1]}-{p[2]}-{p[3]}'
-    if (len(p) > 4):
-        result += f'T{p[4]}'
-    if (len(p) > 5):
-        result += f':{p[5]}'
-    if (len(p) > 6):
-        result += f':{p[6]}'
-    if (len(p) > 7):
-        result += f'.{"".join(p[7:])}'
-    return UTCDateTime(result)
-
-
-def redis_server_start(dir):
-    os.system('pkill -9 -f "redis-server"')
-    file = os.path.join(dir, 'redis.log')
-    with open(file, 'w') as fh:
-        fh.write('')
-    cmd = [
-        'redis-server',
-        '--logfile',
-        file,
-        '--daemonize',
-        'yes',
-    ]
-    if sys.platform == 'win32':
-        cmd.insert(0, 'start')
-    subprocess.run(cmd)
-
-    # This is necessary because it takes some time until the server is ready.
-    t0 = time.time()
-    timeout = 1
-    while not redis_server_check():
-        if time.time() - t0 > timeout:
-            return f'Unable to start Redis, timeout after {timeout} sec.'
-    return ''
-
-
-def redis_server_check():
-    import redis  # NOQA
-    r = redis.Redis()
-    try:
-        r.set('test', 'test')
-    except:
-        return False
-    else:
-        return True
-
-
-def redis_set_ac_continue(value):
-    import redis  # NOQA
-    r = redis.Redis()
-    try:
-        r.set('ac_continue', value)
-    except:
-        return False
-    else:
-        return True
-
-
-def redis_get_ac_continue():
-    import redis  # NOQA
-    r = redis.Redis()
-    if not redis_server_check():
-        return False
-
-    result = r.get('ac_continue')
-    if result is not None and result.decode('utf-8') == 'yes':
-        return True
-    return False
+    logger.info("=" * 60)
+    logger.info("=" * 60)
+    logger.info("Starting DUGSeis Logging")
+    logger.info("=" * 60)
+    logger.info("=" * 60)
 
 
 def pretty_filesize(num: typing.Union[int, float]) -> str:
@@ -164,3 +102,106 @@ def pretty_filesize(num: typing.Union[int, float]) -> str:
             return "%3.1f %s" % (num, x)
         num /= 1024.0
     return "%3.1f %s" % (num, "TB")
+
+
+def filter_settings_to_function(
+    filter_settings: typing.Dict[str, typing.Any]
+) -> typing.Callable:
+    """
+    Convert project filter settings to a callable function.
+
+    Args:
+        filter_settings: The filter settings as given in a DUGSeis project.
+
+    Returns:
+        A function that can be applied to `obspy.Trace` objects.
+    """
+    from dug_seis.project.project import _CONFIG_FILE_SCHEMA
+
+    # Reuse the project schema to validate..
+    filter_settings = schema.Schema(
+        _CONFIG_FILE_SCHEMA.schema["filters"][0]["filter_settings"]
+    ).validate(filter_settings)
+
+    filter_types = [
+        "butterworth_bandpass",
+        "butterworth_highpass",
+        "butterworth_lowpass",
+    ]
+
+    if filter_settings["filter_type"] not in filter_types:
+        raise ValueError(
+            f"Invalid filter type '{filter_settings['filter_type']}'. "
+            f"Available filter types: {filter_types}"
+        )
+
+    def f(tr: obspy.Trace):
+        if filter_settings["filter_type"] == "butterworth_bandpass":
+            tr.filter(
+                "bandpass",
+                freqmin=filter_settings["highpass_frequency_in_hz"],
+                freqmax=filter_settings["lowpass_frequency_in_hz"],
+                corners=filter_settings["filter_corners"],
+                zerophase=filter_settings["zerophase"],
+            )
+        elif filter_settings["filter_type"] == "butterworth_highpass":
+            tr.filter(
+                "highpass",
+                freq=filter_settings["frequency_in_hz"],
+                corners=filter_settings["filter_corners"],
+                zerophase=filter_settings["zerophase"],
+            )
+        elif filter_settings["filter_type"] == "butterworth_lowpass":
+            tr.filter(
+                "lowpass",
+                freq=filter_settings["frequency_in_hz"],
+                corners=filter_settings["filter_corners"],
+                zerophase=filter_settings["zerophase"],
+            )
+        else:
+            raise NotImplementedError
+
+        return tr
+
+    return f
+
+
+def compute_intervals(
+    project: "dug_seis.project.project.DUGSeisProject",  # noqa
+    interval_length_in_seconds: float,
+    interval_overlap_in_seconds: float,
+) -> typing.List[typing.Tuple[obspy.UTCDateTime, obspy.UTCDateTime]]:
+    """
+    Compute intervals to loop over all data in a project.
+
+    Args:
+        project: DUGSeis project object. The temporal bounds will be read from
+            it.
+        interval_length_in_seconds: The length of each interval in seconds.
+        interval_overlap_in_seconds: The overlap between two intervals in
+            seconds.
+
+    Returns:
+        A list of (start time, end time) `obspy.UTCDateTime` tuples.
+    """
+    start_time = project.config["temporal_range"]["start_time"]
+    end_time = project.config["temporal_range"]["end_time"]
+
+    # Just make all of them - cannot be that many and each in the end is a fancy
+    # float.
+    intervals = []
+    interval_start = copy.deepcopy(start_time)
+    while interval_start < end_time:
+        interval_end = interval_start + interval_length_in_seconds
+        # Nothing to do if not covered by the data.
+        if (
+            interval_start > project.waveforms.endtime
+            or interval_end < project.waveforms.starttime
+        ):
+            interval_start = interval_end - interval_overlap_in_seconds
+            continue
+        intervals.append([interval_start, interval_end])
+        # Prep for next iteration.
+        interval_start = interval_end - interval_overlap_in_seconds
+
+    return intervals

@@ -1,0 +1,7 @@
+[tool.black]
+exclude = "dug_seis/graphical_interface/ui_files"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    'ignore:.*Using or importing the ABCs.*',
+]

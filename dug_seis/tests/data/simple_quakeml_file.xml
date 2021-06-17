@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='utf-8'?>
+<q:quakeml xmlns="http://quakeml.org/xmlns/bed/1.2" xmlns:q="http://quakeml.org/xmlns/quakeml/1.2">
+  <eventParameters publicID="smi:local/0d2f0d22-96fa-4809-926c-ae2a6769854d">
+    <event publicID="smi:Grimsel_dummy/event/4873">
+      <origin publicID="smi:Grimsel_dummy/event/4873/origin/1">
+        <time>
+          <value>2017-02-09T13:49:09.253505Z</value>
+          <uncertainty>2.46468968325e-05</uncertainty>
+        </time>
+        <latitude>
+          <value>47.378932258683925</value>
+        </latitude>
+        <longitude>
+          <value>7.165165341136285</value>
+        </longitude>
+        <depth>
+          <value>516.9300624051177</value>
+        </depth>
+        <arrival publicID="smi:Grimsel_dummy/event/4873/origin/1/arrival/0">
+          <pickID>smi:Grimsel_dummy/event/4873/picks/1</pickID>
+          <phase>p</phase>
+          <timeResidual>-0.00014149218231001903</timeResidual>
+        </arrival>
+        <arrival publicID="smi:Grimsel_dummy/event/4873/origin/1/arrival/1">
+          <pickID>smi:Grimsel_dummy/event/4873/picks/2</pickID>
+          <phase>p</phase>
+          <timeResidual>0.00013196734687437762</timeResidual>
+        </arrival>
+      </origin>
+      <pick publicID="smi:Grimsel_dummy/event/4873/picks/1">
+        <time>
+          <value>2017-02-09T13:49:09.259537Z</value>
+        </time>
+        <waveformID networkCode="GR" stationCode="004" locationCode="00" channelCode="001"></waveformID>
+        <methodID>smi:local/recursive_sta_lta</methodID>
+      </pick>
+      <pick publicID="smi:Grimsel_dummy/event/4873/picks/2">
+        <time>
+          <value>2017-02-09T13:49:09.260096Z</value>
+        </time>
+        <waveformID networkCode="GR" stationCode="005" locationCode="00" channelCode="001"></waveformID>
+        <methodID>smi:local/recursive_sta_lta</methodID>
+      </pick>
+    </event>
+  </eventParameters>
+</q:quakeml>

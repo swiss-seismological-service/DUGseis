@@ -9,3 +9,6 @@ dug-seis.log
 readInMatlab.asv
 matlab/
 dug_seis/gui/gui_dev.py
+docs/.generated/*
+docs/_build/*
+dug_seis/waveform_handler/__pycache__/*
