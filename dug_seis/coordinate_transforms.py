@@ -57,7 +57,7 @@ import pyproj
 EPSG_CODES = {"WGS84": 4326, "CH1903": 21781}
 
 
-@functools.lru_cache
+@functools.lru_cache(maxsize=128)
 def _get_transformer(
     source_epsg_code: int, target_epsg_code: int
 ) -> pyproj.Transformer:
