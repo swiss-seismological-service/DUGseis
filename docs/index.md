@@ -24,6 +24,7 @@ configuration
 data_processing
 graphical_interface
 database
+live_environment
 .generated/modules
 ```
 

@@ -19,17 +19,16 @@ Main window and entry point for the graphical DUGSeis interface.
 """
 
 import collections
+import logging
 import pathlib
 import pprint
 import sys
+import time
 import typing
 
 from PySide6 import QtGui, QtCore, QtWidgets
 
 import pyqtgraph as pg
-import pyqtgraph.opengl as gl
-
-from .components.grid import GLGridItem
 
 import numpy as np
 import obspy
@@ -39,10 +38,13 @@ from obspy.core.event.origin import Pick
 from obspy.core.event.base import Comment
 
 
+from .three_d_view import ThreeDView
 from .ui_files.main_window import Ui_MainWindow
 from .waveform_plot_curve_item import WaveformPlotCurveItem
 from ..project.project import DUGSeisProject
 from ..util import filter_settings_to_function
+
+logger = logging.getLogger(__name__)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -67,6 +69,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Dictionary storing the state of things.
         self._state = {}
+
+        # Keep track of everything that is already plotted.
+        self.plots = {}
 
         # Default to a 75%/25% split for the waveform <-> 3D view splitter.
         self.ui.waveform_3d_view_splitter.setSizes([3000, 3000 / 2])
@@ -119,9 +124,14 @@ class MainWindow(QtWidgets.QMainWindow):
         # just create the 3-D view with a delay of 100ms.
         QtCore.QTimer.singleShot(100, self._init_3d_view)
 
-    def _init_3d_view(self):
+        self.data_monitoring_timer = QtCore.QTimer()
+        self.data_monitoring_timer.timeout.connect(self.check_if_data_changed)
+
+    def _init_3d_view(self, set_camera: bool = True):
         """
         Function setting up the 3-D view of the stations.
+
+        Can be called multiple times - it will then just update the 3-D view.
         """
         config = self.project.config["graphical_interface"]["3d_view"]
 
@@ -139,61 +149,23 @@ class MainWindow(QtWidgets.QMainWindow):
             print("No channels => Cannot initialize 3d view")
             return
 
-        x0, x1 = coordinates[:, 0].min(), coordinates[:, 0].max()
-        y0, y1 = coordinates[:, 1].min(), coordinates[:, 1].max()
-        z_min = coordinates[:, 2].min()
+        # Guard the initialization to be able to call this method multiple times
+        # to react to changes.
+        if not hasattr(self, "three_d_view"):
+            self.three_d_view = ThreeDView(
+                gl_widget=self.ui.stationViewGLWidget, config=config, parent=self
+            )
 
-        xr = x1 - x0
-        yr = y1 - y0
-
-        # Add some buffer and recompute the extent.
-        x0 -= xr
-        x1 += xr
-        y0 -= yr
-        y1 += yr
-        xr = x1 - x0
-        yr = y1 - y0
-
-        # Some heuristics to get nice axes.
-        scale = max(coordinates.ptp(axis=0))
-        exponent = len(str(int(scale / 10))) - 1
-        dx = 10 ** exponent
-        # Symmetric length.
-        length = round(max(xr, yr) / 2, -exponent) + dx
-
-        # Rounded mid values.
-        x = round(x0 + 0.5 * xr, -exponent)
-        y = round(y0 + 0.5 * xr, -exponent)
-
-        # Finally construct a nice grid.
-        count = int(round(length * 2 / dx)) + 1
-        x_grid = np.linspace(x - length, x + length, count)
-        y_grid = np.linspace(y - length, y + length, count)
-
-        grid = GLGridItem(x_grid=x_grid, y_grid=y_grid)
-        grid.translate(0, 0, z_min)
-        self.ui.stationViewGLWidget.addItem(grid)
-        axis = gl.GLAxisItem()
-        axis.setSize(x=scale, y=scale, z=scale)
-        axis.translate(x_grid.min(), y_grid.min(), z_min + 0.01 * scale)
-
-        self.ui.stationViewGLWidget.addItem(axis)
-
-        # Set the camera so things are visible.
-        self.ui.stationViewGLWidget.opts["center"].setX(x)
-        self.ui.stationViewGLWidget.opts["center"].setY(x)
-        self.ui.stationViewGLWidget.opts["center"].setZ(z_min)
-        self.ui.stationViewGLWidget.opts["distance"] = scale * 2
-
-        size = np.ones(len(coordinates)) * config["size_channels_in_pixel"]
-        color = np.tile(config["color_channels"], len(coordinates)).reshape(
-            (len(coordinates), 4)
+        self.three_d_view.update_channels(
+            channel_coordinates=coordinates, set_camera=set_camera
         )
-        scatter_plot = gl.GLScatterPlotItem(pos=coordinates, size=size, color=color)
-        self.ui.stationViewGLWidget.addItem(scatter_plot)
+        self.update_events_in_3d_plot()
 
-        # Also do the same for the events.
-        event_coords = np.array(
+    def update_events_in_3d_plot(self):
+        """
+        Updates the events in the 3D view.
+        """
+        event_coordinates = np.array(
             [
                 self.project.global_to_local_coordinates(
                     latitude=c["latitude"],
@@ -203,24 +175,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 for c in self.event_summary
             ]
         )
-        if len(event_coords):
-            size = np.ones(len(event_coords)) * config["size_events_in_pixel"]
-            color = np.tile(config["color_events"], len(event_coords)).reshape(
-                (len(event_coords), 4)
-            )
-            event_scatter_plot = gl.GLScatterPlotItem(
-                pos=event_coords, size=size, color=color
-            )
-            self.ui.stationViewGLWidget.addItem(event_scatter_plot)
-
-        # Plot line segments if desired.
-        for segment in config["line_segments"]:
-            s = np.array(segment)
-            color = np.tile(config["line_segments_color"], len(s)).reshape((len(s), 4))
-            plot_item = gl.GLLinePlotItem(
-                pos=s, width=config["line_segments_width"], color=color
-            )
-            self.ui.stationViewGLWidget.addItem(plot_item)
+        event_times = [c["origin_time"] for c in self.event_summary]
+        assert len(event_coordinates) == len(event_times)
+        self.three_d_view.update_events(event_coordinates, event_times)
 
     def _setup(self):
         """
@@ -235,9 +192,6 @@ class MainWindow(QtWidgets.QMainWindow):
         assert self.event_count == len(self.event_summary)
 
         self._load_data()
-
-        # Keep track of everything that is already plotted.
-        self.plots = {}
 
         self._setup_info_screen()
 
@@ -264,29 +218,45 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         self.wh = self.project.waveforms
 
-        for r in sorted(self.project.channels.keys()):
-            item = QtGui.QListWidgetItem(r)
-            self.ui.channel_list_widget.addItem(item)
+        # Only add the channels if they have not been added yet.
+        if self.ui.channel_list_widget.count() == 0:
+            for r in sorted(self.project.channels.keys()):
+                item = QtGui.QListWidgetItem(r)
+                self.ui.channel_list_widget.addItem(item)
+
+    @property
+    def picks_per_channel(self) -> typing.Dict:
+        """
+        Returns all picks in the database, sorted per channel.
+
+        Loads the picks the first time this is accessed which can be a bit
+        expensive.
+        """
+        if not hasattr(self, "_picks_per_channel") or not self._picks_per_channel:
+            logger.info("Reading all picks from the database ...")
+            a = time.time()
+            picks = self.project.db.get_objects(object_type="Pick")
+            b = time.time()
+            logger.info(f"Read {len(picks)} picks in {b - a:.2} seconds.")
+            # Sort picks by channel.
+            picks_per_channel = {c: [] for c in sorted(self.project.channels.keys())}
+            for p in picks:
+                picks_per_channel.get(p.waveform_id.id, []).append(p)
+            self._picks_per_channel = picks_per_channel
+        return self._picks_per_channel
 
     def _update_active_event_in_3d_plot(self):
-        config = self.project.config["graphical_interface"]["3d_view"]
-
-        key = "active_event_in_3d_plot"
-        # No matter what - delete the old one.
-        if key in self._state:
-            self.ui.stationViewGLWidget.removeItem(self._state[key])
-            del self._state[key]
-
         if "current_event" not in self._state:
+            self.three_d_view.update_active_event(coordinates=None)
             return
 
         event = self._state["current_event"]
         if not event.origins:
+            self.three_d_view.update_active_event(coordinates=None)
             return
 
         origin = event.preferred_origin() or event.origins[0]
 
-        # Also do the same for the events.
         event_coords = np.array(
             [
                 self.project.global_to_local_coordinates(
@@ -296,37 +266,17 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
             ]
         )
-        size = np.ones(len(event_coords)) * config["size_active_event_in_pixel"]
-        color = np.tile(config["color_active_event"], len(event_coords)).reshape(
-            (len(event_coords), 4)
-        )
-        self._state[key] = gl.GLScatterPlotItem(
-            pos=event_coords, size=size, color=color
-        )
-        self.ui.stationViewGLWidget.addItem(self._state[key])
+        self.three_d_view.update_active_event(coordinates=event_coords)
 
     def _update_active_channels_in_3d_plot(self):
-        config = self.project.config["graphical_interface"]["3d_view"]
-
-        key = "active_channels_in_3d_plot"
-        # No matter what - delete the old one.
-        if key in self._state:
-            self.ui.stationViewGLWidget.removeItem(self._state[key])
-            del self._state[key]
-
         if not self.plots:
+            self.three_d_view.update_active_channels(coordinates=None)
             return
 
         coords = np.array(
             [self.project.cartesian_coordinates[c] for c in self.plots.keys()]
         )
-
-        size = np.ones(len(coords)) * config["size_active_channels_in_pixel"]
-        color = np.tile(config["color_active_channels"], len(coords)).reshape(
-            (len(coords), 4)
-        )
-        self._state[key] = gl.GLScatterPlotItem(pos=coords, size=size, color=color)
-        self.ui.stationViewGLWidget.addItem(self._state[key])
+        self.three_d_view.update_active_channels(coordinates=coords)
 
     def _add_pick(self, channel_id, timestamp):
         if "current_event" not in self._state:
@@ -391,6 +341,28 @@ class MainWindow(QtWidgets.QMainWindow):
         x = plot.vb.mapSceneToView(event[0]).x()
         self.ui.mouse_position_label.setText(str(obspy.UTCDateTime(x)))
 
+    def _select_or_deselect_channel_by_coordinates(self, coordinates):
+        """
+        Selects or deselects
+        """
+
+        channels = list(self.project.cartesian_coordinates.keys())
+        channel_coords = np.array(list(self.project.cartesian_coordinates.values()))
+
+        closest = np.argsort(np.linalg.norm(channel_coords - coordinates, axis=1))
+        channel_name = channels[closest[0]]
+
+        existing_channels = set(self.plots.keys())
+        if channel_name in existing_channels:
+            existing_channels.remove(channel_name)
+        else:
+            existing_channels.add(channel_name)
+
+        self._show_channels(sorted(existing_channels))
+        if "current_event" in self._state:
+            event_number = self.ui.event_number_spin_box.value()
+            self.load_event(event_number=event_number)
+
     def _show_channels(self, channels):
         # Nothing to do.
         if set(self.plots.keys()) == set(channels):
@@ -413,6 +385,8 @@ class MainWindow(QtWidgets.QMainWindow):
         def setYRange(self, *args, **kwargs):
             self.enableAutoRange(axis="y")
             self.setAutoVisible(y=True)
+
+        show_all_picks = self.ui.show_all_picks_check_box.isChecked()
 
         for i, channel_id in enumerate(sorted(channels)):
             if channel_id in self.plots:
@@ -439,6 +413,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 "line_objects": [],
                 # Keep the proxy around.
                 "proxy": proxy,
+                "all_picks": None,
             }
 
             # This must happen before `addItem()` is called to avoid triggering an
@@ -461,6 +436,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     channel_id=channel_id, waveform_handler=self.wh, main_window=self
                 )
             )
+
+            # Picks per channel if necessary.
+            if show_all_picks:
+                self._add_all_picks_to_plot(channel_id=channel_id)
 
             plot.sigXRangeChanged.connect(setYRange)
 
@@ -523,7 +502,13 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
         self._state["current_event"] = event
+        # Show the default origin.
         self._update_active_event_in_3d_plot()
+
+        # Update the origin combo box.
+        origin_resource_ids = [str(o.resource_id.resource_id) for o in event.origins]
+        self.ui.origin_selection_combo_box.clear()
+        self.ui.origin_selection_combo_box.insertItems(0, origin_resource_ids)
 
         # Set the classification.
         classification = event.comments[0].text.split(":", 1)[1].strip()
@@ -732,6 +717,90 @@ class MainWindow(QtWidgets.QMainWindow):
             )
 
         plot.setXRange(*new_view_range)
+
+    def reload_data(self):
+        """
+        Reload the data to react to changes.
+        """
+        # Reload the project's waveforms.
+        self.project._load_waveforms()
+        self._setup()
+        self._init_3d_view(set_camera=False)
+
+        # No plots => Nothing more to do!
+        if not self.plots:
+            return
+
+        # Reload the data as well.
+        plot = next(iter(self.plots.values()))["plot_object"]
+        current_view_range = plot.getViewBox().viewRange()[0]
+
+        current_channels = sorted(self.plots.keys())
+        self._show_channels(channels=[])
+        self._show_channels(channels=current_channels)
+
+        plot = next(iter(self.plots.values()))["plot_object"]
+        plot.setXRange(*current_view_range)
+
+    def get_data_state(self) -> typing.Dict:
+        """
+        Get the state of the external data for monitoring purposes.
+        """
+        # We'll monitor two things: The ASDF folders and the size of the sqlite
+        # database.
+        asdf_files = set()
+        for folder in self.project.config["paths"]["asdf_folders"]:
+            asdf_files = asdf_files.union(set(folder.glob("*.h5")))
+
+        db_size = (
+            pathlib.Path(self.project.db._backend._connection_string).stat().st_size
+        )
+
+        state = {"asdf_files": asdf_files, "db_size": db_size}
+        return state
+
+    def check_if_data_changed(self):
+        data_state = self.get_data_state()
+        if not hasattr(self, "_data_state"):
+            self._data_state = data_state
+        else:
+            if self._data_state != data_state:
+                self._data_state = data_state
+                logger.info("Data changed. Reloading ...")
+                self.reload_data()
+            else:
+                logger.info("Data unchanged.")
+
+    def _add_all_picks_to_plot(self, channel_id: str):
+        """
+        Helper method adding all picks for a certain channel to its
+        corresponding plot object.
+        """
+        # Nothing to do.
+        if channel_id not in self.plots:
+            return
+
+        timestamps = []
+        for p in self.picks_per_channel[channel_id]:
+            timestamps.append(p.time.timestamp)
+        timestamps = np.array(timestamps)
+        y = np.zeros_like(timestamps)
+
+        symbolBrush = [
+            int(i * 255)
+            for i in self.project.config["graphical_interface"]["color_all_picks"]
+        ]
+
+        self.plots[channel_id]["all_picks"] = self.plots[channel_id][
+            "plot_object"
+        ].plot(
+            timestamps,
+            y,
+            pen=None,
+            symbol="o",
+            symbolPen=None,
+            symbolBrush=tuple(symbolBrush),
+        )
 
     ################################################################################
     ################################################################################
@@ -952,6 +1021,10 @@ class MainWindow(QtWidgets.QMainWindow):
         event_number = self.ui.event_number_spin_box.value()
         self.load_event(event_number=event_number)
 
+    @QtCore.Slot()
+    def on_reload_data_button_released(self):
+        self.reload_data()
+
     ################################################################################
     # Others
     ################################################################################
@@ -971,6 +1044,31 @@ class MainWindow(QtWidgets.QMainWindow):
             v["plot_object"].items[0].set_filter_function(filter_function=ff)
 
     @QtCore.Slot()
+    def on_origin_selection_combo_box_currentIndexChanged(self, *args, **kwargs):
+        if "current_event" not in self._state:
+            return
+        event = self._state["current_event"]
+        origin_id = self.ui.origin_selection_combo_box.currentText()
+        if not origin_id:
+            return
+        origins = [o for o in event.origins if o.resource_id.resource_id == origin_id]
+        if len(origins) != 1:
+            print(f"Problem finding origin for {origin_id}. Found: {origins}")
+            return
+
+        origin = origins[0]
+        event_coords = np.array(
+            [
+                self.project.global_to_local_coordinates(
+                    latitude=origin.latitude,
+                    longitude=origin.longitude,
+                    depth=origin.depth,
+                )
+            ]
+        )
+        self.three_d_view.update_active_event(coordinates=event_coords)
+
+    @QtCore.Slot()
     def on_channel_list_widget_itemSelectionChanged(self, *args, **kwargs):
         if self._disable_channel_update is True:
             return
@@ -978,6 +1076,41 @@ class MainWindow(QtWidgets.QMainWindow):
             i.text() for i in self.ui.channel_list_widget.selectedItems()
         ]
         self._show_channels(selected_channels)
+
+    @QtCore.Slot()
+    def on_show_all_picks_check_box_stateChanged(self, *args):
+        show_all_picks = self.ui.show_all_picks_check_box.isChecked()
+        for channel_id, plot in self.plots.items():
+            if show_all_picks:
+                # Show.
+                if plot["all_picks"] is not None:
+                    plot["all_picks"].show()
+                # Or create.
+                else:
+                    self._add_all_picks_to_plot(channel_id=channel_id)
+            # Otherwise hide if the exists.
+            else:
+                if plot["all_picks"] is not None:
+                    plot["all_picks"].hide()
+
+    @QtCore.Slot()
+    def on_reload_on_data_change_check_box_stateChanged(self, *args):
+        reload_on_data_change = self.ui.reload_on_data_change_check_box.isChecked()
+        # Start or stop timer.
+        if reload_on_data_change:
+            if not hasattr(self, "_data_state"):
+                self._data_state = self.get_data_state()
+            self.data_monitoring_timer.start(
+                # Given in milliseconds.
+                int(
+                    self.project.config["graphical_interface"][
+                        "data_monitoring_ping_interval"
+                    ]
+                    * 1000
+                )
+            )
+        else:
+            self.data_monitoring_timer.stop()
 
 
 def launch(config: typing.Dict, operator: str):

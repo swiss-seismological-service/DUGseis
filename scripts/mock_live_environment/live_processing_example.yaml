@@ -1,0 +1,55 @@
+version: 13
+
+meta:
+  project_name: Grimsel_dummy_live
+  project_location: Grimsel
+  project_description: Grimsel_dummy
+
+local_coordinate_system:
+  epsg_code: 21781
+  translation_vector: [579300.0, 247500.0, 500.0]
+
+paths:
+  asdf_folders:
+    - 'fake_live_data/asdf'
+  stationxml_folders:
+    - 'C:\Users\lionk\Downloads\DUGSeis\DUGSeis\01_dummy_Grimsel\StationXML'
+  database: 'sqlite://fake_live_data/db.sqlite'
+  cache_folder: 'fake_live_data/cache'
+
+# Must cover the whole range of the experiment, e.g. more than the expected
+# start + end time for the live test case.
+temporal_range:
+  start_time: 2017-02-09T13:10:00.000Z
+  end_time: 2017-02-09T14:00:00.000Z
+
+graphical_interface:
+  classifications:
+    - passive
+    - active
+    - electronic
+    - unknown
+    - random
+  pick_types:
+    - P
+    - S
+  uncertainties_in_ms:
+    - 0.00001
+    - 0.000025
+    - 0.00005
+  3d_view:
+    # Helpful to distinguish newer from older events.
+    color_events: plasma
+    size_events_in_pixel: 7
+    size_channels_in_pixel: 3
+    # Greenish color for channels.
+    color_channels: [0.1, 0.9, 0.0, 0.4]
+
+filters:
+  - filter_id: smi:local/bandpass_causal_1000_5000
+    filter_settings:
+      filter_type: butterworth_bandpass
+      highpass_frequency_in_hz: 1000.0
+      lowpass_frequency_in_hz: 5000.0
+      filter_corners: 4
+      zerophase: false

@@ -49,3 +49,21 @@ A few clarifications:
 
 * The "Save Visible Data" button will open a dialog to save whatever waveform
   data is currently shown to disk.
+
+### Pick Viewing
+
+The "Show All Picks" check box in the bottom left will cause all picks in the
+database to be shown.
+
+### Data Reloading
+
+Data can be manually reloaded from disc (for example if the database changed
+externally or new waveform data became available). Press the "Reload Data" button for that.
+
+Alternatively the graphical interface can periodically monitor the waveform
+data
+ folders and the database for changes and reload on any potential data
+changes.
+ The ping interval in seconds can be configured with the
+`graphical_interface.data_monitoring_ping_interval` setting. There is a certain
+cost to doing this so don't set this too low.

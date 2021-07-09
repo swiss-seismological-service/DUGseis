@@ -33,12 +33,19 @@ class Ui_MainWindow(object):
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.waveform_3d_view_splitter = QSplitter(self.waveform_tab)
         self.waveform_3d_view_splitter.setObjectName(u"waveform_3d_view_splitter")
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.waveform_3d_view_splitter.sizePolicy().hasHeightForWidth())
+        self.waveform_3d_view_splitter.setSizePolicy(sizePolicy)
         self.waveform_3d_view_splitter.setFrameShape(QFrame.NoFrame)
         self.waveform_3d_view_splitter.setFrameShadow(QFrame.Plain)
         self.waveform_3d_view_splitter.setOrientation(Qt.Horizontal)
         self.waveform_3d_view_splitter.setHandleWidth(5)
         self.groupBox = QGroupBox(self.waveform_3d_view_splitter)
         self.groupBox.setObjectName(u"groupBox")
+        sizePolicy.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
+        self.groupBox.setSizePolicy(sizePolicy)
         self.horizontalLayout_11 = QHBoxLayout(self.groupBox)
         self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
         self.verticalLayout_6 = QVBoxLayout()
@@ -114,11 +121,11 @@ class Ui_MainWindow(object):
 
         self.plotWidget = GraphicsLayoutWidget(self.groupBox)
         self.plotWidget.setObjectName(u"plotWidget")
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.plotWidget.sizePolicy().hasHeightForWidth())
-        self.plotWidget.setSizePolicy(sizePolicy)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.plotWidget.sizePolicy().hasHeightForWidth())
+        self.plotWidget.setSizePolicy(sizePolicy1)
 
         self.verticalLayout_6.addWidget(self.plotWidget)
 
@@ -190,11 +197,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.setContentsMargins(2, -1, 2, 2)
         self.channel_list_widget = QListWidget(self.groupBox_6)
         self.channel_list_widget.setObjectName(u"channel_list_widget")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.channel_list_widget.sizePolicy().hasHeightForWidth())
-        self.channel_list_widget.setSizePolicy(sizePolicy1)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.channel_list_widget.sizePolicy().hasHeightForWidth())
+        self.channel_list_widget.setSizePolicy(sizePolicy2)
         self.channel_list_widget.setMinimumSize(QSize(0, 0))
         self.channel_list_widget.setMaximumSize(QSize(16777215, 16777215))
         self.channel_list_widget.setSelectionMode(QAbstractItemView.MultiSelection)
@@ -222,14 +229,35 @@ class Ui_MainWindow(object):
         self.waveform_3d_view_splitter.addWidget(self.groupBox)
         self.groupBox_2 = QGroupBox(self.waveform_3d_view_splitter)
         self.groupBox_2.setObjectName(u"groupBox_2")
-        self.horizontalLayout_8 = QHBoxLayout(self.groupBox_2)
-        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
-        self.horizontalLayout_8.setContentsMargins(2, -1, 2, 2)
+        self.verticalLayout_7 = QVBoxLayout(self.groupBox_2)
+        self.verticalLayout_7.setObjectName(u"verticalLayout_7")
+        self.verticalLayout_7.setContentsMargins(2, -1, 2, 2)
+        self.label_10 = QLabel(self.groupBox_2)
+        self.label_10.setObjectName(u"label_10")
+        sizePolicy3 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.label_10.sizePolicy().hasHeightForWidth())
+        self.label_10.setSizePolicy(sizePolicy3)
+        self.label_10.setFont(font)
+
+        self.verticalLayout_7.addWidget(self.label_10)
+
+        self.label_11 = QLabel(self.groupBox_2)
+        self.label_11.setObjectName(u"label_11")
+        sizePolicy3.setHeightForWidth(self.label_11.sizePolicy().hasHeightForWidth())
+        self.label_11.setSizePolicy(sizePolicy3)
+        self.label_11.setFont(font)
+
+        self.verticalLayout_7.addWidget(self.label_11)
+
         self.stationViewGLWidget = GLViewWidget(self.groupBox_2)
         self.stationViewGLWidget.setObjectName(u"stationViewGLWidget")
+        sizePolicy.setHeightForWidth(self.stationViewGLWidget.sizePolicy().hasHeightForWidth())
+        self.stationViewGLWidget.setSizePolicy(sizePolicy)
         self.stationViewGLWidget.setMinimumSize(QSize(0, 0))
 
-        self.horizontalLayout_8.addWidget(self.stationViewGLWidget)
+        self.verticalLayout_7.addWidget(self.stationViewGLWidget)
 
         self.waveform_3d_view_splitter.addWidget(self.groupBox_2)
 
@@ -295,6 +323,15 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addWidget(self.save_picks_in_dummy_arrival)
 
+        self.verticalSpacer_4 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.verticalLayout_3.addItem(self.verticalSpacer_4)
+
+        self.show_all_picks_check_box = QCheckBox(self.groupBox_3)
+        self.show_all_picks_check_box.setObjectName(u"show_all_picks_check_box")
+
+        self.verticalLayout_3.addWidget(self.show_all_picks_check_box)
+
 
         self.horizontalLayout_10.addWidget(self.groupBox_3)
 
@@ -330,16 +367,35 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addWidget(self.save_visible_data_button)
 
+        self.verticalSpacer_5 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.verticalLayout_4.addItem(self.verticalSpacer_5)
+
+        self.reload_data_button = QPushButton(self.groupBox_4)
+        self.reload_data_button.setObjectName(u"reload_data_button")
+
+        self.verticalLayout_4.addWidget(self.reload_data_button)
+
+        self.verticalLayout_8 = QVBoxLayout()
+        self.verticalLayout_8.setObjectName(u"verticalLayout_8")
+
+        self.verticalLayout_4.addLayout(self.verticalLayout_8)
+
+        self.reload_on_data_change_check_box = QCheckBox(self.groupBox_4)
+        self.reload_on_data_change_check_box.setObjectName(u"reload_on_data_change_check_box")
+
+        self.verticalLayout_4.addWidget(self.reload_on_data_change_check_box)
+
 
         self.horizontalLayout_10.addWidget(self.groupBox_4)
 
         self.events_group_box = QGroupBox(self.waveform_tab)
         self.events_group_box.setObjectName(u"events_group_box")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.MinimumExpanding)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.events_group_box.sizePolicy().hasHeightForWidth())
-        self.events_group_box.setSizePolicy(sizePolicy2)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.MinimumExpanding)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.events_group_box.sizePolicy().hasHeightForWidth())
+        self.events_group_box.setSizePolicy(sizePolicy4)
         self.events_group_box.setMaximumSize(QSize(16777215, 200))
         self.horizontalLayout_6 = QHBoxLayout(self.events_group_box)
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
@@ -367,6 +423,27 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
 
+        self.horizontalLayout_8 = QHBoxLayout()
+        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
+        self.label_12 = QLabel(self.events_group_box)
+        self.label_12.setObjectName(u"label_12")
+        sizePolicy5 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.label_12.sizePolicy().hasHeightForWidth())
+        self.label_12.setSizePolicy(sizePolicy5)
+
+        self.horizontalLayout_8.addWidget(self.label_12)
+
+        self.origin_selection_combo_box = QComboBox(self.events_group_box)
+        self.origin_selection_combo_box.setObjectName(u"origin_selection_combo_box")
+
+        self.horizontalLayout_8.addWidget(self.origin_selection_combo_box)
+
+        self.horizontalLayout_8.setStretch(1, 1)
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_8)
+
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.previous_event_button = QPushButton(self.events_group_box)
@@ -391,13 +468,16 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_6.addWidget(self.event_text_browser)
 
+        self.horizontalLayout_6.setStretch(0, 1)
+        self.horizontalLayout_6.setStretch(1, 4)
 
         self.horizontalLayout_10.addWidget(self.events_group_box)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_10)
 
-        self.verticalLayout.setStretch(0, 1)
+        self.verticalLayout.setStretch(0, 10)
+        self.verticalLayout.setStretch(1, 1)
         self.tabWidget.addTab(self.waveform_tab, "")
         self.info_tab = QWidget()
         self.info_tab.setObjectName(u"info_tab")
@@ -456,11 +536,14 @@ class Ui_MainWindow(object):
         self.show_channels_with_picks_button.setText(QCoreApplication.translate("MainWindow", u"Show Channels with Picks", None))
         self.show_closest_channels_button.setText(QCoreApplication.translate("MainWindow", u"Show Closest Channels", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"3D View", None))
+        self.label_10.setText(QCoreApplication.translate("MainWindow", u"Right click to select event", None))
+        self.label_11.setText(QCoreApplication.translate("MainWindow", u"Ctrl + right click to (de)select a channel", None))
         self.groupBox_3.setTitle(QCoreApplication.translate("MainWindow", u"Pick Settings", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Phase", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"Polarity", None))
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"Uncertainty [ms]", None))
         self.save_picks_in_dummy_arrival.setText(QCoreApplication.translate("MainWindow", u"Save Arrival-less Picks in Dummy Origin", None))
+        self.show_all_picks_check_box.setText(QCoreApplication.translate("MainWindow", u"Show All Picks", None))
         self.groupBox_4.setTitle(QCoreApplication.translate("MainWindow", u"Actions", None))
         self.save_classification_button.setText(QCoreApplication.translate("MainWindow", u"Save Classification", None))
         self.relocate_push_button.setText(QCoreApplication.translate("MainWindow", u"Relocate Event", None))
@@ -468,9 +551,12 @@ class Ui_MainWindow(object):
         self.save_visible_data_button.setToolTip(QCoreApplication.translate("MainWindow", u"Opens a dialogue box to save the visible data to disk in a selection of different file formats.", None))
 #endif // QT_CONFIG(tooltip)
         self.save_visible_data_button.setText(QCoreApplication.translate("MainWindow", u"Save Visible Data", None))
+        self.reload_data_button.setText(QCoreApplication.translate("MainWindow", u"Reload Data", None))
+        self.reload_on_data_change_check_box.setText(QCoreApplication.translate("MainWindow", u"Reload on Data Change", None))
         self.events_group_box.setTitle(QCoreApplication.translate("MainWindow", u"Events", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Event", None))
         self.load_event_button.setText(QCoreApplication.translate("MainWindow", u"Load Event", None))
+        self.label_12.setText(QCoreApplication.translate("MainWindow", u"Origin in 3D View", None))
         self.previous_event_button.setText(QCoreApplication.translate("MainWindow", u"Previous Event", None))
         self.next_event_button.setText(QCoreApplication.translate("MainWindow", u"Next Event", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.waveform_tab), QCoreApplication.translate("MainWindow", u"Data Browser", None))

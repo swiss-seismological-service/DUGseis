@@ -23,6 +23,7 @@ import logging
 import pathlib
 import typing
 
+import matplotlib.pyplot as plt
 import numpy as np
 import obspy
 import schema
@@ -71,6 +72,20 @@ def _4c_float_array(a):
     return a
 
 
+def _colormap_or_color(a):
+    # Colormap.
+    if isinstance(a, str):
+        if a not in plt.colormaps():
+            raise ValueError(
+                f"'{a}' must either be a color as 4 floats or a valid "
+                "matplotlib colormap."
+            )
+        return a
+    # Or color.
+    else:
+        return _4c_float_array(a)
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -102,6 +117,10 @@ _CONFIG_FILE_SCHEMA = schema.Schema(
             "classifications": [str],
             "pick_types": [str],
             "uncertainties_in_ms": [float],
+            schema.Optional(
+                "color_all_picks", default=np.array([1.0, 1.0, 0.0, 0.7])
+            ): schema.Use(_4c_float_array),
+            schema.Optional("data_monitoring_ping_interval", default=5.0): float,
             schema.Optional("number_of_closest_channels", default=4): int,
             schema.Optional(
                 "3d_view",
@@ -135,7 +154,7 @@ _CONFIG_FILE_SCHEMA = schema.Schema(
                 schema.Optional("size_events_in_pixel", default=3): int,
                 schema.Optional(
                     "color_events", default=[1.0, 0.0, 0.0, 0.5]
-                ): schema.Use(_4c_float_array),
+                ): schema.Use(_colormap_or_color),
                 schema.Optional("size_active_event_in_pixel", default=25): int,
                 schema.Optional(
                     "color_active_event", default=[1.0, 0.0, 0.0, 1.0]

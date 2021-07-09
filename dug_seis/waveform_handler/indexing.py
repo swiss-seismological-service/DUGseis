@@ -127,7 +127,7 @@ def combine_caches(caches: typing.List[typing.Dict]):
 
     # First loop to get all as well as the smallest start and largest endtime.
     starttime, endtime, dt_ns = _compute_times(caches[0])
-    for c in caches[1:]:
+    for c in caches:
         s, e, dt = _compute_times(c)
         if s < starttime:
             starttime = s
