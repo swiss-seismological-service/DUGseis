@@ -1,3 +1,3 @@
 # DUG Seis
 
-[Documentation](https://swiss-seismological-service.github.io/DUGseis)
+[Documentation](https://dugseis.readthedocs.io/)
