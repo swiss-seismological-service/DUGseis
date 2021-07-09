@@ -1,12 +1,15 @@
 # Configuration file for the Sphinx documentation builder.
 import pathlib
 import shutil
+import sys
 
 import sphinx.ext.apidoc
 
 
 SCRIPT_DIR = pathlib.Path(__file__).parent
 MODULE_DIR = pathlib.Path(__file__).parent.parent / "dug_seis"
+
+sys.path.insert(0, str(SCRIPT_DIR.parent))
 
 # -- Project information -----------------------------------------------------
 

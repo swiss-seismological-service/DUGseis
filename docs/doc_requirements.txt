@@ -1,2 +1,12 @@
 sphinx-book-theme
 myst-parser
+click
+numba
+numpy
+obspy
+pyasdf
+pyproj>=3
+pyyaml
+schema
+scipy
+tqdm
