@@ -12,3 +12,7 @@ dug_seis/gui/gui_dev.py
 docs/.generated/*
 docs/_build/*
 dug_seis/waveform_handler/__pycache__/*
+
+# C extensions
+*.so
+*.o

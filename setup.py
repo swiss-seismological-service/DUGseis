@@ -42,8 +42,8 @@ _install_requires = [
     "tqdm",
 ]
 
-cmodule = Extension('aurem/src/aurem_clib',
-                    sources=['aurem/src/aurem_clib.c'],
+cmodule = Extension('dug_seis/event_processing/picking/pickers/aurem/aurem/src/aurem_clib',
+                    sources=['dug_seis/event_processing/picking/pickers/aurem/aurem/src/aurem_clib.c'],
                     extra_compile_args=["-O3"])
 
 setup(
