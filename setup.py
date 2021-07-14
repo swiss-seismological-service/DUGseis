@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Extension
 
 
 _authors = [
@@ -41,6 +41,10 @@ _install_requires = [
     "scipy",
     "tqdm",
 ]
+
+cmodule = Extension('aurem/src/aurem_clib',
+                    sources=['aurem/src/aurem_clib.c'],
+                    extra_compile_args=["-O3"])
 
 setup(
     name="DUG-Seis",
@@ -73,4 +77,5 @@ setup(
     include_package_data=True,
     zip_safe=False,
     entry_points={"console_scripts": ["dug-seis=dug_seis.cmd_line:cli"]},
+    ext_modules=[cmodule]
 )
