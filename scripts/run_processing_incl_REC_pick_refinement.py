@@ -148,9 +148,6 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
                                       location=pick.waveform_id.location_code)[0]
             trace_1 = trace_1.trim(starttime=pick.time - win_pre, endtime=pick.time + win_post)
 
-
-
-
             recobj = REC(trace_1)
             recobj.work()
             idx_REC = recobj.get_pick_index()
