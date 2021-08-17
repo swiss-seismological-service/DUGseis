@@ -26,7 +26,7 @@ import sys
 import time
 import typing
 
-from PySide6 import QtGui, QtCore, QtWidgets
+from PySide6 import QtCore, QtWidgets
 
 import pyqtgraph as pg
 
@@ -221,7 +221,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Only add the channels if they have not been added yet.
         if self.ui.channel_list_widget.count() == 0:
             for r in sorted(self.project.channels.keys()):
-                item = QtGui.QListWidgetItem(r)
+                item = QtWidgets.QListWidgetItem(r)
                 self.ui.channel_list_widget.addItem(item)
 
     @property
