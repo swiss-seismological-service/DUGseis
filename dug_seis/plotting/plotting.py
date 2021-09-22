@@ -22,6 +22,61 @@ import matplotlib.pyplot as plt
 from obspy.signal.trigger import recursive_sta_lta
 
 
+def fft_amp():
+    """
+    Performs Fast Fourier Transform on traces in stream
+    """
+
+    t = np.linspace(0, 1, 10000, endpoint=True)
+    f = 20  # Frequency in Hz
+    A = 100.0  # Amplitude in Unit
+    s = A * np.sin(2 * np.pi * f * t)  # Signal
+
+    # plot time domain
+    plt.figure(figsize=(7, 3))
+    plt.subplot(121)
+    hann = np.hanning(len(s))
+    plt.plot(t, s)
+    plt.title('Time Domain Signal')
+    plt.ylim(np.min(s) * 3, np.max(s) * 3)
+    plt.xlabel('Time ($s$)')
+    plt.ylabel('Amplitude ($Unit$)')
+
+    # FFT
+    dt = t[1] - t[0]
+    fa = 1.0 / dt
+
+    # s = np.pad(s, (5000, 0), mode='constant') #zero pad
+    hann = np.hanning(len(s))
+    Yhann = np.fft.fft(hann * s)
+    # Yhann = np.fft.fft(s)
+    corr = 1.63
+    Y = np.fft.fft(s)
+    N = int(len(Y) / 2 + 1)
+    X = np.linspace(0, fa / 2, N, endpoint=True)
+
+
+    plt.subplot(122)
+    # plt.plot(X, 2.0 * np.abs(Y[:N]) / N)
+    plt.plot(X, 2.0 * np.abs(Yhann[:N]) / N)
+    plt.title('Frequency Domain Signal')
+    plt.xlabel('Frequency ($Hz$)')
+    plt.ylabel('Amplitude ($Unit$)')
+    plt.xlim(0, f*2)
+
+    plt.annotate("FFT",
+                 xy=(0.0, 0.1), xycoords='axes fraction',
+                 xytext=(-0.8, 0.2), textcoords='axes fraction',
+                 size=30, va="center", ha="center",
+                 arrowprops=dict(arrowstyle="simple",
+                                 connectionstyle="arc3,rad=0.2"))
+    plt.tight_layout()
+    plt.show()
+    X = 2
+
+
+
+
 def get_time_vector(stream):
     s_rate = int(stream.traces[0].stats['sampling_rate'])
     time = np.arange(0, stream[0].data.shape[0], 1) * 1 / s_rate * 1000
@@ -77,7 +132,7 @@ def plot_time_waveform(stream):
     for index, trace in enumerate(stream.traces):
         ax = fig.add_subplot(gspec[index, col])
         # plot data
-        ax_plot_x_y_data(ax, time, trace.data, unit_pa='c', format_pa='d', markers='yes')
+        ax_plot_x_y_data(ax, time, trace.data, unit_pa='c', format_pa='d', markers='no')
 
         # plot specific settings
         # y-axis
@@ -90,7 +145,7 @@ def plot_time_waveform(stream):
 
         if index < gspec.nrows - 1:
             ax.set_xticklabels([])
-            ax.set_xticks([])
+            # ax.set_xticks([])
             ax.spines['bottom'].set_visible(False)
         else:
             ax.set_xlabel('time [ms]')

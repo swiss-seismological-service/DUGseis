@@ -11,8 +11,12 @@ from dug_seis.project.project import DUGSeisProject
 from dug_seis import util
 from dug_seis.plotting.plotting import plot_time_waveform,\
                                         plot_time_characteristic_function,\
-                                        plot_waveform_characteristic_function
+                                        plot_waveform_characteristic_function,\
+                                        fft_amp
 
+
+
+fft_amp()
 # Load project.
 project = DUGSeisProject(config="dug_seis_example_4_acquisition_systems.yaml")
 
@@ -24,25 +28,38 @@ intervals = util.compute_intervals(
 
 print("data between: {0} and {1}".format(UTCDateTime(intervals[0][0]), UTCDateTime(intervals[-1:][0][1])))
 
-noise_start = UTCDateTime('2021-08-24T14:38:00.000000Z')
-noise_interval = 0.002
+noise_start = UTCDateTime('2021-09-08T13:37:30.000000Z')
+noise_interval = 0.1
 
 # load stream data
 # all channels: project.waveforms.channel_list
+# [
+#             "XB.01.16.001",
+#             "XB.01.31.001",
+#             "XB.01.32.001",
+#             "XB.02.09.001",
+#             "XB.02.31.001",
+#             "XB.02.32.001",
+#             "XB.03.16.001",
+#             "XB.03.31.001",
+#             "XB.03.32.001",
+#             "XB.04.16.001",
+#             "XB.04.31.001",
+#             "XB.04.32.001"]
+
+
 st_noise = project.waveforms.get_waveforms(
         channel_ids=[
+            "XB.01.16.001",
             "XB.01.31.001",
             "XB.01.32.001",
-            "XB.02.31.001",
-            "XB.02.32.001",
-            "XB.03.30.001",
+            "XB.03.16.001",
             "XB.03.31.001",
-            "XB.03.32.001",
-            "XB.04.31.001",
-            "XB.04.32.001"],
+            "XB.03.32.001"],
         start_time=noise_start,
         end_time=noise_start + noise_interval)
 
+st_noise.plot()
 
 fig1 = plot_time_waveform(st_noise)
 fig1.set_size_inches(8.27, 11.69)

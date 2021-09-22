@@ -19,26 +19,26 @@ local_coordinate_system:
 paths:
   # A list of folders with the waveform files as ASDF files.
   asdf_folders:
-    - 'E:\Linus_1\16_new_generation_dugseis\07_new_generation\01_Windows\noise_plotting\data\testData\GPS_TTL_on_all_conties\conti01'
-    - 'E:\Linus_1\16_new_generation_dugseis\07_new_generation\01_Windows\noise_plotting\data\testData\GPS_TTL_on_all_conties\conti02'
-    - 'E:\Linus_1\16_new_generation_dugseis\07_new_generation\01_Windows\noise_plotting\data\testData\GPS_TTL_on_all_conties\conti03'
-    - 'E:\Linus_1\16_new_generation_dugseis\07_new_generation\01_Windows\noise_plotting\data\testData\GPS_TTL_on_all_conties\conti04'
+    - '/bedrettolab/waveforms/raw/continuous-01-bedretto/2021/251'
+    - '/bedrettolab/waveforms/raw/continuous-02-bedretto/2021/251'
+    - '/bedrettolab/waveforms/raw/continuous-03-bedretto/2021/251'
+    - '/bedrettolab/waveforms/raw/continuous-04-bedretto/2021/251'
   # Folder with the corresponding StationXML files.
   stationxml_folders:
-    - 'E:\Linus_1\16_new_generation_dugseis\07_new_generation\01_Windows\noise_plotting\station_xml\conti01'
-    - 'E:\Linus_1\16_new_generation_dugseis\07_new_generation\01_Windows\noise_plotting\station_xml\conti02'
-    - 'E:\Linus_1\16_new_generation_dugseis\07_new_generation\01_Windows\noise_plotting\station_xml\conti03'
-    - 'E:\Linus_1\16_new_generation_dugseis\07_new_generation\01_Windows\noise_plotting\station_xml\conti04'
+    - '/home/vlinus/auxiliary_data_DUGSeis/20210909_noise_investigation/station_xml/conti01'
+    - '/home/vlinus/auxiliary_data_DUGSeis/20210909_noise_investigation/station_xml/conti02'
+    - '/home/vlinus/auxiliary_data_DUGSeis/20210909_noise_investigation/station_xml/conti03'
+    - '/home/vlinus/auxiliary_data_DUGSeis/20210909_noise_investigation/station_xml/conti04'
   # Path to the SQLite database storing everything.
-  database: 'sqlite://E:\Linus_1\16_new_generation_dugseis\07_new_generation\01_Windows\noise_plotting\data_base\db.sqlite'
+  database: 'sqlite:///home/vlinus/auxiliary_data_DUGSeis/20210909_noise_investigation/data_base/db.sqlite'
   # Cache folder - can be safely deletes but might be expensive to recompute.
-  cache_folder: 'E:\Linus_1\16_new_generation_dugseis\07_new_generation\01_Windows\noise_plotting\cach'
+  cache_folder: '/home/vlinus/auxiliary_data_DUGSeis/20210909_noise_investigation/cach'
 
 # Temporal range of the experiment. All parts of DUGSeis will only use data in
 # that range.
 temporal_range:
-  start_time: 2021-08-24T14:38:00.000000Z
-  end_time: 2021-08-24T14:38:05.999995Z
+  start_time: 2021-09-08T13:00:00.000000Z
+  end_time: 2021-09-08T13:45:00.000000Z
 
 # Some settings affecting the graphical interface.
 graphical_interface:
