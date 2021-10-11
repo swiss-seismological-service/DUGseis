@@ -28,6 +28,7 @@ _authors_email = ["linus.villiger@sed.ethz.ch", "joseph.doetsch@erdw.ethz.ch"]
 
 _install_requires = [
     "click",
+    "matplotlib",
     "numba",
     "numpy",
     "obspy",
