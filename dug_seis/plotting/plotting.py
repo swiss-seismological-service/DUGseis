@@ -80,52 +80,48 @@ def fft_amp(stream):
     # s = A * np.sin(2 * np.pi * f * t)  # Signal
 
     # plot time domain
-    plt.figure(figsize=(7, 3))
-    plt.subplot(121)
-    hann = np.hanning(len(s))
-    plt.plot(t, s)
-    plt.title('Time Domain Signal')
-    plt.ylim(np.min(s) * 3, np.max(s) * 3)
-    plt.xlabel('Time ($s$)')
-    plt.ylabel('Amplitude ($Unit$)')
-
-    # FFT
-    dt = t[1] - t[0]
-    fa = 1.0 / dt
-
-    # s = np.pad(s, (5000, 0), mode='constant') #zero pad
-    hann = np.hanning(len(s))
-    Yhann = np.fft.fft(hann * s)
-    # Yhann = np.fft.fft(s)
-    corr = 1.63
-    Y = np.fft.fft(s)
-    N = int(len(Y) / 2 + 1)
-    X = np.linspace(0, fa / 2, N, endpoint=True)
-
-
-    plt.subplot(122)
-    plt.plot(X, 2.0 * np.abs(Yhann[:N]) / N)
-    plt.title('Frequency Domain Signal')
-    plt.xlabel('Frequency ($Hz$)')
-    plt.ylabel('Amplitude ($Unit$)')
-    plt.xlim(0, f*2)
-
-    plt.annotate("FFT",
-                 xy=(0.0, 0.1), xycoords='axes fraction',
-                 xytext=(-0.8, 0.2), textcoords='axes fraction',
-                 size=30, va="center", ha="center",
-                 arrowprops=dict(arrowstyle="simple",
-                                 connectionstyle="arc3,rad=0.2"))
-    plt.tight_layout()
-    plt.show()
-    X = 2
-
-
+    # plt.figure(figsize=(7, 3))
+    # plt.subplot(121)
+    # hann = np.hanning(len(s))
+    # plt.plot(t, s)
+    # plt.title('Time Domain Signal')
+    # plt.ylim(np.min(s) * 3, np.max(s) * 3)
+    # plt.xlabel('Time ($s$)')
+    # plt.ylabel('Amplitude ($Unit$)')
+    #
+    # # FFT
+    # dt = t[1] - t[0]
+    # fa = 1.0 / dt
+    #
+    # # s = np.pad(s, (5000, 0), mode='constant') #zero pad
+    # hann = np.hanning(len(s))
+    # Yhann = np.fft.fft(hann * s)
+    # # Yhann = np.fft.fft(s)
+    # corr = 1.63
+    # Y = np.fft.fft(s)
+    # N = int(len(Y) / 2 + 1)
+    # X = np.linspace(0, fa / 2, N, endpoint=True)
+    #
+    #
+    # plt.subplot(122)
+    # plt.plot(X, 2.0 * np.abs(Yhann[:N]) / N)
+    # plt.title('Frequency Domain Signal')
+    # plt.xlabel('Frequency ($Hz$)')
+    # plt.ylabel('Amplitude ($Unit$)')
+    # plt.xlim(0, f*2)
+    #
+    # plt.annotate("FFT",
+    #              xy=(0.0, 0.1), xycoords='axes fraction',
+    #              xytext=(-0.8, 0.2), textcoords='axes fraction',
+    #              size=30, va="center", ha="center",
+    #              arrowprops=dict(arrowstyle="simple",
+    #                              connectionstyle="arc3,rad=0.2"))
+    # plt.tight_layout()
+    # plt.show()
 
 
 def get_time_vector(stream):
-    s_rate = int(stream.traces[0].stats['sampling_rate'])
-    time = np.arange(0, stream[0].data.shape[0], 1) * 1 / s_rate * 1000
+    time = np.arange(0, stream[0].data.shape[0], 1) * stream[0].stats.delta * 1000
 
     if len(time) != stream.traces[0].stats.npts:
         if stream.traces[0].stats.npts > len(time):  # append to samp_v if too short
@@ -239,6 +235,7 @@ def plot_y_labels(trace, ax):
              horizontalalignment='left', verticalalignment='center')
     return handle
 
+
 def plot_waveform_characteristic_function(stream, nsta, nlta):
     # chose plotting style
     plt.style.use('seaborn-bright')
@@ -301,3 +298,39 @@ def plot_waveform_fft_amplitude(stream):
                 ax.set_xlabel('time [ms]')
     plt.suptitle('waveform-characterisitc function \nstarttime: ' + str(trace.stats.starttime), fontsize=10)
     return fig
+
+
+def plot_waveform_characteristic_function_magnitude(stream, nsta, nlta, tr_on, tr_off, event):
+    figure = plot_waveform_characteristic_function(stream, nsta, nlta)
+
+    # update title
+    new_title = figure._suptitle._text + "\n" + "$M_A$ {:.2f}".format(event.magnitudes[0].mag)
+    figure.suptitle(new_title)
+
+    x_min, x_max = np.array(figure.axes[0].get_xlim())
+    for index, pick in enumerate(event.picks):
+        x_pick = (event.picks[index].time - stream[0].stats.starttime) * 1000
+        y_max = figure.axes[index].get_ylim()[1] * 0.2
+
+        figure.axes[index].scatter(x_pick, y_max, marker='v', color='red', zorder=10,
+                                   alpha=.5, label='P-pick')
+
+        figure.axes[index + len(event.picks)].hlines(tr_on, x_min, x_max, colors='red', linestyles='dashed',
+                                                     zorder=10, alpha=.5, label='threshold on')
+        figure.axes[index + len(event.picks)].hlines(tr_off, x_min, x_max, colors='green', linestyles='dashed',
+                                                     zorder=10, alpha=.5, label='threshold off')
+
+        # update text in first column of subplots
+        new_text = "PA: {:.3f}mV".format(event.amplitudes[index].generic_amplitude) + "\n" + \
+                   "Dist.: {:.1f}m".format(event.origins[0].arrivals[index].distance) + "\n" + \
+                   "$M_A$ sta.: {:.2f}".format(event.magnitudes[0].station_magnitude_contributions[index])
+
+        figure.axes[index].texts[0].set_text(new_text)
+
+        if index == 0:
+            figure.axes[index].legend(loc='lower left')
+            figure.axes[index + len(event.picks)].legend(loc='lower left', ncol=2)
+        else:
+            continue
+
+    return figure
