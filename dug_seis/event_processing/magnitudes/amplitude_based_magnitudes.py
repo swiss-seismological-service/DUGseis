@@ -26,8 +26,8 @@ from obspy.core.event.base import TimeWindow
 def amplitude_based_relative_magnitude(st_event, event):
     # main parameters for magnitude processing
     s_wave_velocity = 3950  # [m/s]
-    filter_freq_min = 3e3
-    filter_freq_max = 12e3
+    filter_freq_min = 3e3  # [Hz]
+    filter_freq_max = 12e3  # [Hz]
     filter_corners = 4
     filter_zerophase = 'false'
 
@@ -92,9 +92,9 @@ def amplitude_based_relative_magnitude(st_event, event):
         corr_fac_2 = dist/r_0
 
         Mr_station = np.append(Mr_station, np.log10(p_amp[ind] * corr_fac_2 * corr_fac_1))
-    Mr = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))
-    MA_station = Mr_station - Grimsel_factor
-    MA = Mr - Grimsel_factor
+    Mr = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))  # network magnitude
+    MA_station = Mr_station - Grimsel_factor  # correction with Grimsel adjustment factor
+    MA = Mr - Grimsel_factor  # correction with Grimsel adjustment factor
 
     # Append magnitude to event
     event.magnitudes.append(
