@@ -36,7 +36,7 @@ util.setup_logging_to_file(
 logger = logging.getLogger(__name__)
 
 # Load the DUGSeis project.
-project = DUGSeisProject(config="run_processing_incl_REC_pick_refinement_v01.yaml")
+project = DUGSeisProject(config="run_processing_incl_REC_MA_determination.yaml")
 
 # Helper function to compute intervals over the project.
 intervals = util.compute_intervals(
@@ -173,7 +173,7 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
         fig.set_size_inches(11.69, 8.27)
         fig.show()
 
-        exit()
+        # exit()
 
         # Write the classification as a comment.
         event.comments = [

@@ -25,10 +25,10 @@ paths:
     - '/bedrettolab/waveforms/raw/continuous-04-bedretto/2021/280'
   # Folder with the corresponding StationXML files.
   stationxml_folders:
-    - '/home/vlinus/auxiliary_data_DUGSeis/stations/StationXML_Autumn2021_after20210913/stationXML_conti01'
-    - '/home/vlinus/auxiliary_data_DUGSeis/stations/StationXML_Autumn2021_after20210913/stationXML_conti02'
-    - '/home/vlinus/auxiliary_data_DUGSeis/stations/StationXML_Autumn2021_after20210913/stationXML_conti03'
-    - '/home/vlinus/auxiliary_data_DUGSeis/stations/StationXML_Autumn2021_after20210913/stationXML_conti04'
+    - '/home/vlinus/auxiliary_data_DUGSeis/stations/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti01'
+    - '/home/vlinus/auxiliary_data_DUGSeis/stations/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti02'
+    - '/home/vlinus/auxiliary_data_DUGSeis/stations/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti03'
+    - '/home/vlinus/auxiliary_data_DUGSeis/stations/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti04'
   # Path to the SQLite database storing everything.
   database: 'sqlite:///home/vlinus/auxiliary_data_DUGSeis/database/db.sqlite'
   # Cache folder - can be safely deletes but might be expensive to recompute.

@@ -25,7 +25,7 @@ from obspy.core.event.base import TimeWindow
 
 def amplitude_based_relative_magnitude(st_event, event):
     # main parameters for magnitude processing
-    s_wave_velocity = 3950  # [m/s]
+    s_wave_velocity = 3100  # [m/s]
     filter_freq_min = 3e3  # [Hz]
     filter_freq_max = 12e3  # [Hz]
     filter_corners = 4
