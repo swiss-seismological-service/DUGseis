@@ -125,7 +125,7 @@ class RelocationDialog(QtWidgets.QDialog):
     def update_table_in_gui(self):
         for row, info in enumerate(self.pick_info):
             # Checkbox.
-            cb = QtGui.QTableWidgetItem()
+            cb = QtWidgets.QTableWidgetItem()
             cb.setCheckState(
                 QtCore.Qt.CheckState.Checked
                 if info["active"]
