@@ -19,7 +19,7 @@ Magnitude determination routines.
 """
 import numpy as np
 from obspy.core.event import Magnitude
-from obspy.core.event.magnitude import Amplitude
+from obspy.core.event.magnitude import Amplitude, StationMagnitude, StationMagnitudeContribution
 from obspy.core.event.base import TimeWindow
 
 
@@ -78,22 +78,34 @@ def amplitude_based_relative_magnitude(st_event, event):
                       time_window=TimeWindow(begin=t_window[index].begin, end=t_window[index].end,
                                              reference=t_window[index].reference)))
 
-    # Magnitude determination per station
+   # Magnitude determination per station
     f_0 = (filter_freq_max - filter_freq_min) / 2 + filter_freq_min  # dominant frequency [Hz]
     Q = 76.0  # Quality factor [] introduced by Hansruedi Maurer (Email 29.07.2021)
     V_P = 5400.0  # P-wave velocity [m/s]
     r_0 = 10.0  # reference distance [m]
     Grimsel_factor = 4.0  # determined Grimsel factor
 
+    StationMagContribution = []
     Mr_station = np.empty((0, len(event.picks)), int)
-    for ind, pick in enumerate(event.picks):
-        dist = event.origins[0].arrivals[ind].distance
+    for index, pick in enumerate(event.picks):
+        dist = event.origins[0].arrivals[index].distance
         corr_fac_1 = np.exp(np.pi*(dist-r_0)*f_0/(Q*V_P))
         corr_fac_2 = dist/r_0
 
-        Mr_station = np.append(Mr_station, np.log10(p_amp[ind] * corr_fac_2 * corr_fac_1))
+        Mr_station = np.append(Mr_station, np.log10(p_amp[index] * corr_fac_2 * corr_fac_1))
+
+        event.magnitudes.append(
+            StationMagnitude(resource_id=f"stationmag/{index}/{event.preferred_origin_id.id}",
+                             origin_id=event.preferred_origin_id.id,
+                             mag=Mr_station[index] - Grimsel_factor,
+                             station_magnitude_type='Mb',
+                             amplitude_id=f"amplitude/{index}/{event.origins[0].resource_id.id}"))
+
+        StationMagContribution.append(
+            StationMagnitudeContribution(station_magnitude_id=f"stationmag/{index}/{event.preferred_origin_id.id}",
+                                         weight=1/len(event.picks)))
+
     Mr = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))  # network magnitude
-    MA_station = Mr_station - Grimsel_factor  # correction with Grimsel adjustment factor
     MA = Mr - Grimsel_factor  # correction with Grimsel adjustment factor
 
     # Append magnitude to event
@@ -103,6 +115,6 @@ def amplitude_based_relative_magnitude(st_event, event):
                   magnitude_type='Mb',
                   method_id="method/magnitude/amplitude_based",
                   station_count=len(Mr_station),
-                  station_magnitude_contributions=MA_station.tolist()))
+                  station_magnitude_contribution=StationMagContribution))
 
     return event
