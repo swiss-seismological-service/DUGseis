@@ -374,11 +374,14 @@ class MainWindow(QtWidgets.QMainWindow):
         # channels it had to with the idea of inducing less work. That was
         # really hard to get stable and always had some subtle issues. So now
         # we just recreate all plots always. Seems to be fast enough.
-        for key, value in list(self.plots.items()):
-            if time_range is None:
-                time_range = value["plot_object"].getViewBox().viewRange()[0]
-            self.ui.plotWidget.removeItem(value["plot_object"])
-            del self.plots[key]
+        if self.plots:
+            # Keep track of the time range to be able to set it later.
+            time_range = (
+                next(iter(self.plots.values()))["plot_object"]
+                .getViewBox()
+                .viewRange()[0]
+            )
+            self.ui.plotWidget.clear()
 
         self.plots = {}
 
@@ -468,6 +471,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._update_picks()
         self._update_active_channels_in_3d_plot()
+
+        # Force the recomputation of the internal size to workaround a bug in
+        # pyqtgraph if the minimal size of the widget becomes larger than the
+        # container and it does not properly update once it fits again.
+        self.ui.plotWidget.resizeEvent(ev=None)
 
     def _update_event_str(self, event):
         pick_str = sorted([p.waveform_id.id for p in event.picks])
