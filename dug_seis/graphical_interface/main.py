@@ -51,6 +51,7 @@ class ReloadDataWorker(QtCore.QObject):
     """
     Worker thread to reload the waveform data to not block the UI.
     """
+
     finished = QtCore.Signal()
 
     def __init__(self, project: DUGSeisProject, mutex: QtCore.QMutex):
