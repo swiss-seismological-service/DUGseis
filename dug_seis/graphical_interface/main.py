@@ -103,9 +103,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Keep track of everything that is already plotted.
         self.plots = {}
 
-        # Default to a 75%/25% split for the waveform <-> 3D view splitter.
-        self.ui.waveform_3d_view_splitter.setSizes([3000, 3000 / 2])
-
         # Load the project.
         self.project = DUGSeisProject(config=config)
 
