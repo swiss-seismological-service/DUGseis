@@ -47,6 +47,35 @@ from ..util import filter_settings_to_function
 logger = logging.getLogger(__name__)
 
 
+class ReloadDataWorker(QtCore.QObject):
+    """
+    Worker thread to reload the waveform data to not block the UI.
+    """
+    finished = QtCore.Signal()
+
+    def __init__(self, project: DUGSeisProject, mutex: QtCore.QMutex):
+        super().__init__()
+        self._project = project
+        self._mutex = mutex
+
+    @QtCore.Slot()
+    def run(self):
+        try:
+            self._run()
+        except Exception as e:
+            print(f"Failed running thread due to: {str(type(e))}: {e}")
+
+    def _run(self):
+        try:
+            self._mutex.lock()
+            self._project._load_waveforms()
+        # Always release the lock.
+        finally:
+            self._mutex.unlock()
+
+        self.finished.emit()
+
+
 class MainWindow(QtWidgets.QMainWindow):
     """
     Main window of the graphical DUGSeis interface.
@@ -726,12 +755,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         plot.setXRange(*new_view_range)
 
-    def reload_data(self):
+    def _reload_data_after_waveform_data(self):
         """
-        Reload the data to react to changes.
+        All the other updates after the waveforms have been updated in a thread.
         """
-        # Reload the project's waveforms.
-        self.project._load_waveforms()
         self._setup()
         self._init_3d_view(set_camera=False)
 
@@ -749,6 +776,43 @@ class MainWindow(QtWidgets.QMainWindow):
 
         plot = next(iter(self.plots.values()))["plot_object"]
         plot.setXRange(*current_view_range)
+
+    def reload_data(self):
+        """
+        Reload the data to react to changes.
+        """
+        # Reload the project's waveforms in thread.
+        # Lock for the waveform update just to be safe.
+        if "waveform_update_thread_lock" not in self._state:
+            self._state["waveform_update_thread_lock"] = QtCore.QMutex()
+        mutex = self._state["waveform_update_thread_lock"]
+
+        if "thread" in self._state:
+            print("Already running. Nothing will happen.")
+            return
+
+        self._state["thread"] = QtCore.QThread()
+        self._state["worker_job"] = ReloadDataWorker(project=self.project, mutex=mutex)
+
+        thread = self._state["thread"]
+        worker_job = self._state["worker_job"]
+
+        # Create worker job and move to the just created thread.
+        worker_job.moveToThread(thread)
+
+        # Signals and slots for the thread.
+        thread.started.connect(worker_job.run)
+
+        worker_job.finished.connect(self._reload_data_after_waveform_data)
+        worker_job.finished.connect(worker_job.deleteLater)
+        thread.finished.connect(lambda: self._state.pop("worker_job", None))
+        thread.finished.connect(lambda: self._state.pop("thread", None))
+        worker_job.finished.connect(thread.quit)
+
+        thread.finished.connect(thread.deleteLater)
+
+        # Finally start the thread.
+        thread.start()
 
     def get_data_state(self) -> typing.Dict:
         """
