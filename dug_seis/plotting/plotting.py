@@ -174,8 +174,24 @@ def plot_time_waveform(stream, markers='no'):
     for index, trace in enumerate(stream.traces):
         ax = fig.add_subplot(gspec[index, col])
         # plot data * 10000 / 32000 mV
-        data = np.multiply(trace.data, 10000 / 32000)
-        # data = data - np.mean(data)
+        # if trace.id == 'XB.01.15.001' or trace.id == 'XB.01.23.001':
+        #     data = np.multiply(trace.data, 50 / 2**16)
+        # elif trace.id == 'XB.01.16.001' or trace.id == 'XB.01.24.001':
+        #     data = np.multiply(trace.data, 100 / 2 ** 16)
+        # elif trace.id == 'XB.01.17.001' or trace.id == 'XB.01.25.001':
+        #     data = np.multiply(trace.data, 250 / 2 ** 16)
+        # elif trace.id == 'XB.01.18.001' or trace.id == 'XB.01.26.001':
+        #     data = np.multiply(trace.data, 500 / 2 ** 16)
+        # elif trace.id == 'XB.01.19.001' or trace.id == 'XB.01.27.001':
+        #     data = np.multiply(trace.data, 1000 / 2 ** 16)
+        # elif trace.id == 'XB.01.20.001' or trace.id == 'XB.01.28.001':
+        #     data = np.multiply(trace.data, 2000 / 2 ** 16)
+        # elif trace.id == 'XB.01.21.001' or trace.id == 'XB.01.29.001':
+        #     data = np.multiply(trace.data, 5000 / 2 ** 16)
+        # else:
+        #     data = np.multiply(trace.data, 10000 / 2**16)
+        data = np.multiply(trace.data, 10000 / 2 ** 16)
+        data = data - np.mean(data)
         ax_plot_x_y_data(ax, time, data, unit_pa='mV', markers=markers)
 
         # Percentiles
@@ -194,6 +210,7 @@ def plot_time_waveform(stream, markers='no'):
             ax.spines['bottom'].set_visible(False)
         else:
             ax.set_xlabel('time [ms]')
+    # plt.suptitle('time-waveform \nstarttime: ' + str(stream[0].stats.starttime), fontsize=10)
     plt.suptitle('time-waveform \nstarttime: ' + str(stream[0].stats.starttime), fontsize=10)
     return fig
 
@@ -330,8 +347,8 @@ def plot_waveform_characteristic_function_magnitude(stream, nsta, nlta, tr_on, t
         # update text in first column of subplots
         new_text = "Dist.: {:.1f} m".format(event.origins[0].arrivals[index].distance) + "\n" + \
                    "SNR: {:.1f}".format(event.amplitudes[index].snr) + "\n" + \
-                   "PA: {:.3f} mV".format(event.amplitudes[index].generic_amplitude) + "\n" + \
-                   "$M_A$ sta.: {:.2f}".format(event.magnitudes[0].station_magnitude_contributions[index])
+                   "PA: {:.3f} mV".format(event.amplitudes[index].generic_amplitude) # + "\n" + \
+                   # "$M_A$ sta.: {:.2f}".format(event.magnitudes[0].station_magnitude_contributions[index])
 
         figure.axes[index].texts[0].set_text(new_text)
 

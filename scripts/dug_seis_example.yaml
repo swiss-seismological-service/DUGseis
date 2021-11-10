@@ -25,7 +25,7 @@ paths:
   stationxml_folders:
     - 'C:\Users\lionk\Downloads\DUGSeis\DUGSeis\01_dummy_Grimsel\StationXML'
   # Path to the SQLite database storing all event information.
-  database: 'sqlite://C:\Users\lionk\Downloads\DUGSeis\DUGSeis\01_dummy_Grimsel\db.sqlite'
+  database: 'sqlite://C:\Users\lionk\Downloads\DUGSeis\DUGSeis\01_dummy_Grimsel\db2.sqlite'
   # Cache folder - can be safely deletes but might be expensive to recompute.
   cache_folder: 'C:\Users\lionk\Downloads\DUGSeis\DUGSeis\01_dummy_Grimsel\cache'
 
@@ -33,7 +33,7 @@ paths:
 # that range.
 temporal_range:
   start_time: 2017-02-09T13:22:00.000Z
-  end_time: 2017-02-09T13:28:00.000Z
+  end_time: 2017-02-09T13:52:00.000Z
 
 # Settings affecting the graphical interface.
 graphical_interface:
@@ -55,6 +55,8 @@ graphical_interface:
     - 0.00005
   # Optional: Number of channels the "Show closest channels" button shows.
   number_of_closest_channels: 4
+  # Optional: Color for the scatter plot that shows all picks.
+  color_all_picks: [0.8, 1.0, 0.0, 0.9]
   # Optional: Settings for the 3-D receiver/event view.
   # All colors are RGBA with ranges from 0 to 1.
   # (R=red, G=green, B=blue, A=alpha)
