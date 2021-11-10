@@ -68,7 +68,6 @@ def amplitude_based_relative_magnitude(st_event, event):
         n_amp = np.append(n_amp, noise_95pers * conversion_factor_counts_mV)
 
     # And add amplitude to list
-    a = []
     for index, pick in enumerate(event.picks):
         event.amplitudes.append(
             Amplitude(resource_id=f"amplitude/p_wave/{uuid.uuid4()}",
