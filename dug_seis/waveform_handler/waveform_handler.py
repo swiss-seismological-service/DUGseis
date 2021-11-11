@@ -206,10 +206,8 @@ class WaveformHandler:
         ):
             # Reuse existing caches if necessary.
             if existing_caches is None or name not in existing_caches:
-                print(f"Caching {name}")
                 single_file_cache = self._cache_single_file(filename=name, info=info)
             else:
-                print(f"Reusing cache for {name}")
                 single_file_cache = existing_caches[name]
 
             caches[name] = single_file_cache
