@@ -165,11 +165,6 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
             damping=0.01,
             local_to_global_coordinates=project.local_to_global_coordinates)
 
-        # plot blank waveforms
-        fig1 = plot_time_waveform(st_event, markers='no')
-        fig1.set_size_inches(8.27, 11.69)
-        fig1.show()
-
         # get magnitude
         event = amplitude_based_relative_magnitude(st_event, event)
 
@@ -177,11 +172,6 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
         fig = plot_waveform_characteristic_function_magnitude(st_event, st_window, lt_window, tr_on, tr_off, event)
         fig.set_size_inches(11.69, 8.27)
         fig.show()
-
-        # Validate xml
-        event.write("out.xml", format="quakeml", validate=True)
-
-        exit()
 
         # Write the classification as a comment.
         event.comments = [
@@ -199,7 +189,7 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
             continue
 
         # Add the event to the project.
-        event.write("out.xml", format="quakeml", validate=True)
+        # event.write("out.xml", format="quakeml", validate=True) # validate current event quakeml
         added_event_count += 1
         project.db.add_object(event)
     logger.info(

@@ -30,7 +30,7 @@ paths:
     - '/home/vlinus/auxiliary_data_DUGSeis/stations/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti03'
     - '/home/vlinus/auxiliary_data_DUGSeis/stations/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti04'
   # Path to the SQLite database storing everything.
-  database: 'sqlite:///home/vlinus/auxiliary_data_DUGSeis/database/db2.sqlite'
+  database: 'sqlite:///home/vlinus/auxiliary_data_DUGSeis/database/db3.sqlite'
   # Cache folder - can be safely deletes but might be expensive to recompute.
   cache_folder: '/home/vlinus/auxiliary_data_DUGSeis/cach'
 

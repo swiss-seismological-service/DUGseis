@@ -174,8 +174,10 @@ def plot_time_waveform(stream, markers='no'):
     for index, trace in enumerate(stream.traces):
         ax = fig.add_subplot(gspec[index, col])
         # plot data * 10000 / 32000 mV
-        # if trace.id == 'XB.01.15.001' or trace.id == 'XB.01.23.001':
-        #     data = np.multiply(trace.data, 50 / 2**16)
+        if 'XB.01' in trace.id:
+            data = np.multiply(trace.data, 50 / 2**16)
+        else:
+            data = np.multiply(trace.data, 10000 / 2 ** 16)
         # elif trace.id == 'XB.01.16.001' or trace.id == 'XB.01.24.001':
         #     data = np.multiply(trace.data, 100 / 2 ** 16)
         # elif trace.id == 'XB.01.17.001' or trace.id == 'XB.01.25.001':
@@ -190,7 +192,7 @@ def plot_time_waveform(stream, markers='no'):
         #     data = np.multiply(trace.data, 5000 / 2 ** 16)
         # else:
         #     data = np.multiply(trace.data, 10000 / 2**16)
-        data = np.multiply(trace.data, 10000 / 2 ** 16)
+
         data = data - np.mean(data)
         ax_plot_x_y_data(ax, time, data, unit_pa='mV', markers=markers)
 
@@ -321,7 +323,7 @@ def plot_waveform_characteristic_function_magnitude(stream, nsta, nlta, tr_on, t
     figure = plot_waveform_characteristic_function(stream, nsta, nlta)
 
     # update title
-    new_title = figure._suptitle._text + "\n" + "$M_A$ {:.2f}".format(event.magnitudes[0].mag)
+    new_title = figure._suptitle._text + "\n" + "$M_A$ net: {:.2f}".format(event.magnitudes[0].mag)
     figure.suptitle(new_title)
 
     x_min, x_max = np.array(figure.axes[0].get_xlim())
@@ -347,8 +349,8 @@ def plot_waveform_characteristic_function_magnitude(stream, nsta, nlta, tr_on, t
         # update text in first column of subplots
         new_text = "Dist.: {:.1f} m".format(event.origins[0].arrivals[index].distance) + "\n" + \
                    "SNR: {:.1f}".format(event.amplitudes[index].snr) + "\n" + \
-                   "PA: {:.3f} mV".format(event.amplitudes[index].generic_amplitude) # + "\n" + \
-                   # "$M_A$ sta.: {:.2f}".format(event.magnitudes[0].station_magnitude_contributions[index])
+                   "PA: {:.3f} corr".format(event.amplitudes[index].generic_amplitude) + "\n" + \
+                   "$M_A$ sta.: {:.2f}".format(event.station_magnitudes[index].mag)
 
         figure.axes[index].texts[0].set_text(new_text)
 

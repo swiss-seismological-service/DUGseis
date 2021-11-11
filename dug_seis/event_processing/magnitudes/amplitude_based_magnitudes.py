@@ -20,7 +20,7 @@ Magnitude determination routines.
 import numpy as np
 from obspy.core.event import Magnitude
 from obspy.core.event.magnitude import Amplitude, StationMagnitude, StationMagnitudeContribution
-from obspy.core.event.base import TimeWindow
+from obspy.core.event.base import TimeWindow, WaveformStreamID
 import uuid
 
 
@@ -75,7 +75,10 @@ def amplitude_based_relative_magnitude(st_event, event):
                       type='AMB',
                       unit='other',
                       snr=p_amp[index] / n_amp[index],
-                      waveform_id=st_event[index].id,
+                      waveform_id=WaveformStreamID(network_code=st_event[index].stats.network,
+                                                   station_code=st_event[index].stats.station,
+                                                   location_code=st_event[index].stats.location,
+                                                   channel_code=st_event[index].stats.channel),
                       time_window=TimeWindow(begin=t_window[index].begin, end=t_window[index].end,
                                              reference=t_window[index].reference)))
 
@@ -98,15 +101,15 @@ def amplitude_based_relative_magnitude(st_event, event):
         # station magnitude computation
         Mr_station = np.append(Mr_station, np.log10(p_amp[index] * corr_fac_2 * corr_fac_1))
         # append station magnitude to event
-        event.magnitudes.append(
-            StationMagnitude(resource_id=f"magnitude/p_wave_magnitude/relative/station_mag/{uuid.uuid4()}",
+        event.station_magnitudes.append(
+            StationMagnitude(resource_id=f"station_magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
                              origin_id=event.preferred_origin_id.id,
                              mag=Mr_station[index] - Grimsel_factor,
-                             magnitude_type='Mb',
-                             amplitude_id=event.amplitudes[index].resource_id.id))
+                             station_magnitude_type='Mb',
+                             amplitude_id=event.amplitudes[index].resource_id))
         # store station magnitude contribution
         s_m.append(
-            StationMagnitudeContribution(station_magnitude_id=event.magnitudes[index].resource_id.id,
+            StationMagnitudeContribution(station_magnitude_id="smi:local/" + event.station_magnitudes[index].resource_id.id,
                                          weight=1/len(event.picks)))
 
     Mr_network = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))  # network magnitude
