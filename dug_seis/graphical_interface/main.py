@@ -65,6 +65,7 @@ class ReloadDataWorker(QtCore.QObject):
             self._run()
         except Exception as e:
             print(f"Failed running thread due to: {str(type(e))}: {e}")
+        self.finished.emit()
 
     def _run(self):
         try:
@@ -73,8 +74,6 @@ class ReloadDataWorker(QtCore.QObject):
         # Always release the lock.
         finally:
             self._mutex.unlock()
-
-        self.finished.emit()
 
 
 class MainWindow(QtWidgets.QMainWindow):
