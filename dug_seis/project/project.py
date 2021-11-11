@@ -262,46 +262,59 @@ class DUGSeisProject:
         self.__db = DB(url=self.config["paths"]["database"])
 
     def _load_waveforms(self):
+        # Reuse caches if possible.
+        if self.__waveform_handler is not None:
+            existing_caches = self.__waveform_handler._individual_caches
+        else:
+            existing_caches = None
+
         wh = WaveformHandler(
             waveform_folders=self.config["paths"]["asdf_folders"],
             cache_folder=self.config["paths"]["cache_folder"],
             index_sampling_rate_in_hz=100,
             start_time=self.config["temporal_range"]["start_time"],
             end_time=self.config["temporal_range"]["end_time"],
+            existing_caches=existing_caches,
         )
 
         # Time to check that the data also corresponds to the StationXML
-        # meta-data.
-        channels_in_data = set(wh.receivers)
-        channels_in_meta_data = set(self.channels.keys())
+        # meta-data. Only do this the first time around to not clutter the
+        # output.
+        if existing_caches is None:
+            channels_in_data = set(wh.receivers)
+            channels_in_meta_data = set(self.channels.keys())
 
-        in_asdf_files = "\n".join(f"* {i}" for i in sorted(channels_in_data))
-        in_stationxml_files = "\n".join(
-            f"  * {i}" for i in sorted(channels_in_meta_data)
-        )
-        msg = (
-            "Channels in the ASDF data don't correspond to \n"
-            "the channels in the StationXML files.\n\n"
-            f"Channels in the ASDF files:\n{in_asdf_files}\n\n"
-            f"Channels in the StationXML files:\n{in_stationxml_files}"
-        )
+            in_asdf_files = "\n".join(f"* {i}" for i in sorted(channels_in_data))
+            in_stationxml_files = "\n".join(
+                f"  * {i}" for i in sorted(channels_in_meta_data)
+            )
+            msg = (
+                "Channels in the ASDF data don't correspond to \n"
+                "the channels in the StationXML files.\n\n"
+                f"Channels in the ASDF files:\n{in_asdf_files}\n\n"
+                f"Channels in the StationXML files:\n{in_stationxml_files}"
+            )
 
-        extra_channels_in_meta_data = channels_in_meta_data.difference(channels_in_data)
-        extra_channels_in_data = channels_in_data.difference(channels_in_meta_data)
+            extra_channels_in_meta_data = channels_in_meta_data.difference(
+                channels_in_data
+            )
+            extra_channels_in_data = channels_in_data.difference(channels_in_meta_data)
 
-        if extra_channels_in_data:
-            in_data = "\n".join(f"* {i}" for i in sorted(extra_channels_in_data))
-            msg += f"\n\n\nAdditional channels in the data:\n{in_data}"
-        if extra_channels_in_meta_data:
-            in_meta = "\n".join(f"* {i}" for i in sorted(extra_channels_in_meta_data))
-            msg += f"\n\n\nAdditional channels in the meta data:\n{in_meta}"
+            if extra_channels_in_data:
+                in_data = "\n".join(f"* {i}" for i in sorted(extra_channels_in_data))
+                msg += f"\n\n\nAdditional channels in the data:\n{in_data}"
+            if extra_channels_in_meta_data:
+                in_meta = "\n".join(
+                    f"* {i}" for i in sorted(extra_channels_in_meta_data)
+                )
+                msg += f"\n\n\nAdditional channels in the meta data:\n{in_meta}"
 
-        # Raise for extra channels in the meta data. This is likely an error.
-        if extra_channels_in_meta_data:
-            raise ValueError(msg)
-        # Otherwise only warn.
-        elif extra_channels_in_data:
-            logger.warn(msg)
+            # Raise for extra channels in the meta data. This is likely an error.
+            if extra_channels_in_meta_data:
+                raise ValueError(msg)
+            # Otherwise only warn.
+            elif extra_channels_in_data:
+                logger.warn(msg)
 
         self.__waveform_handler = wh
 

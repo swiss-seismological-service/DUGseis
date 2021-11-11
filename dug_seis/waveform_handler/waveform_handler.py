@@ -51,6 +51,36 @@ $                                                              # End of string.
 )
 
 
+@functools.lru_cache(maxsize=20)
+def _get_open_asdf_file(filename: pathlib.Path) -> pyasdf.ASDFDataSet:
+    """
+    Get an open ASDF file.
+
+    Use a LRU cache to get fast repeated file accesses.
+    """
+    return pyasdf.ASDFDataSet(filename=str(filename), mode="r")
+
+
+@functools.lru_cache(maxsize=200)
+def _get_channel_from_file(filename: pathlib.Path, channel_id: str) -> obspy.Trace:
+    """
+    Get an open ASDF file.
+
+    Use a LRU cache to get fast repeated file accesses.
+    """
+    # Get files - already cached.
+    ds = _get_open_asdf_file(filename)
+
+    sta = ds.waveforms[".".join(channel_id.split(".")[:2])]
+    items = [i for i in sta.list() if i.startswith(channel_id)]
+    if not len(items):
+        raise ValueError(f"Could not find data for channel '{channel_id}'")
+    assert len(items) == 1, f"{items}"
+    st = sta[items[0]]
+
+    return st[0]
+
+
 class WaveformHandler:
     """
     Central class handling waveform access for DUGseis.
@@ -63,6 +93,7 @@ class WaveformHandler:
             index.
         start_time: Limit temporal range.
         end_time: Limit temporal range.
+        existing_caches: List of already read caches.
     """
 
     def __init__(
@@ -72,6 +103,7 @@ class WaveformHandler:
         index_sampling_rate_in_hz: int,
         start_time: obspy.UTCDateTime,
         end_time: obspy.UTCDateTime,
+        existing_caches: typing.Optional[typing.Dict] = None,
     ):
         self._start_time = start_time
         self._end_time = end_time
@@ -79,7 +111,7 @@ class WaveformHandler:
         self._waveform_folders = [pathlib.Path(i) for i in waveform_folders]
         self._cache_folder = pathlib.Path(cache_folder)
         self._open_folder()
-        self._build_cache()
+        self._build_cache(existing_caches=existing_caches)
 
     @property
     def starttime(self) -> obspy.UTCDateTime:
@@ -162,52 +194,30 @@ class WaveformHandler:
         """
         return self._cache["cache_dt_ns"]
 
-    @functools.lru_cache(maxsize=20)
-    def _get_open_asdf_file(self, filename: pathlib.Path) -> pyasdf.ASDFDataSet:
-        """
-        Get an open ASDF file.
-
-        Use a LRU cache to get fast repeated file accesses.
-        """
-        return pyasdf.ASDFDataSet(filename=str(filename), mode="r")
-
-    @functools.lru_cache(maxsize=200)
-    def _get_channel_from_file(
-        self, filename: pathlib.Path, channel_id: str
-    ) -> obspy.Trace:
-        """
-        Get an open ASDF file.
-
-        Use a LRU cache to get fast repeated file accesses.
-        """
-        # Get files - already cached.
-        ds = self._get_open_asdf_file(filename)
-
-        sta = ds.waveforms[".".join(channel_id.split(".")[:2])]
-        items = [i for i in sta.list() if i.startswith(channel_id)]
-        if not len(items):
-            raise ValueError(f"Could not find data for channel '{channel_id}'")
-        assert len(items) == 1, f"{items}"
-        st = sta[items[0]]
-
-        return st[0]
-
-    def _build_cache(self):
+    def _build_cache(self, existing_caches: typing.Optional[typing.Dict] = None):
         self._cache_folder.mkdir(parents=True, exist_ok=True)
 
-        caches = []
+        caches = {}
 
         filename_receivers_map = {}
 
         for name, info in tqdm.tqdm(
             self._files.items(), desc="Creating/updating cache"
         ):
-            single_file_cache = self._cache_single_file(filename=name, info=info)
-            caches.append(single_file_cache)
+            # Reuse existing caches if necessary.
+            if existing_caches is None or name not in existing_caches:
+                print(f"Caching {name}")
+                single_file_cache = self._cache_single_file(filename=name, info=info)
+            else:
+                print(f"Reusing cache for {name}")
+                single_file_cache = existing_caches[name]
+
+            caches[name] = single_file_cache
             filename_receivers_map[name] = set(single_file_cache["receivers"])
 
         # Combine everything into a single cache.
-        self._cache = combine_caches(caches=caches)
+        self._individual_caches = caches
+        self._cache = combine_caches(caches=list(caches.values()))
 
         # Keep track of which file stores which receivers.
         self._filename_receivers_map = filename_receivers_map
@@ -540,7 +550,7 @@ class WaveformHandler:
 
         st = obspy.Stream(
             traces=[
-                self._get_channel_from_file(filename=f, channel_id=channel_id).copy()
+                _get_channel_from_file(filename=f, channel_id=channel_id).copy()
                 for f in files.keys()
             ]
         )
