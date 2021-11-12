@@ -67,7 +67,7 @@ def amplitude_based_relative_magnitude(st_event, event):
         noise_95pers = np.percentile(np.abs(noise.data), 95)  # take 95 % percentile to omit outliers
         n_amp = np.append(n_amp, noise_95pers * conversion_factor_counts_mV)
 
-    # And add amplitude to list
+    # And add amplitude to the respective event
     for index, pick in enumerate(event.picks):
         event.amplitudes.append(
             Amplitude(resource_id=f"amplitude/p_wave/{uuid.uuid4()}",
