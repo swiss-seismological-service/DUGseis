@@ -327,19 +327,21 @@ def plot_waveform_characteristic_function_magnitude(stream, nsta, nlta, tr_on, t
     figure.suptitle(new_title)
 
     x_min, x_max = np.array(figure.axes[0].get_xlim())
+    # get all waveform id's for which a pick exists
+
+    amplitude_w_ids = []
+    for index, amplitude in enumerate(event.amplitudes):
+        amplitude_w_ids.append(amplitude.waveform_id.id)
+
+    count = 0
     for index, pick in enumerate(event.picks):
         x_pick = (event.picks[index].time - stream[0].stats.starttime) * 1000
-        x_swave = ((event.amplitudes[index].time_window.reference +
-                    event.amplitudes[index].time_window.end) - stream[0].stats.starttime) * 1000
+
         y_max = figure.axes[index].get_ylim()[1] * 0.2
 
         # P-pick plotting
         figure.axes[index].scatter(x_pick, y_max, marker='v', color='red', zorder=10,
                                    alpha=.5, label='P-pick')
-
-        # theoretical S-wave arrival
-        figure.axes[index].scatter(x_swave, y_max, marker='v', color='black', zorder=10,
-                                   alpha=.5, label='end P-window')
 
         figure.axes[index + len(event.picks)].hlines(tr_on, x_min, x_max, colors='red', linestyles='dashed',
                                                      zorder=10, alpha=.5, label='threshold on')
@@ -347,10 +349,20 @@ def plot_waveform_characteristic_function_magnitude(stream, nsta, nlta, tr_on, t
                                                      zorder=10, alpha=.5, label='threshold off')
 
         # update text in first column of subplots
-        new_text = "Dist.: {:.1f} m".format(event.origins[0].arrivals[index].distance) + "\n" + \
-                   "SNR: {:.1f}".format(event.amplitudes[index].snr) + "\n" + \
-                   "PA: {:.3f} corr".format(event.amplitudes[index].generic_amplitude) + "\n" + \
-                   "$M_A$ sta.: {:.2f}".format(event.station_magnitudes[index].mag)
+        if pick.waveform_id.id in amplitude_w_ids:  # only print mag if mag, resp. amplitude exists
+            new_text = "Dist.: {:.1f} m".format(event.origins[0].arrivals[index].distance) + "\n" + \
+                       "SNR: {:.1f}".format(event.amplitudes[count].snr) + "\n" + \
+                       "PA: {:.3f} corr".format(event.amplitudes[count].generic_amplitude) + "\n" + \
+                       "$M_A$ sta.: {:.2f}".format(event.station_magnitudes[count].mag)
+            x_swave = ((event.amplitudes[count].time_window.reference +
+                        event.amplitudes[count].time_window.end) - stream[0].stats.starttime) * 1000
+            # theoretical S-wave arrival
+            figure.axes[index].scatter(x_swave, y_max, marker='v', color='black', zorder=10,
+                                       alpha=.5, label='end P-window')
+            count += 1
+        else:
+            new_text = "Dist.: {:.1f} m".format(event.origins[0].arrivals[index].distance) + "\n" + \
+                       "used for location but no magnitude computed"
 
         figure.axes[index].texts[0].set_text(new_text)
 
