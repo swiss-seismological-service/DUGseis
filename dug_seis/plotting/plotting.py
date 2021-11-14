@@ -171,6 +171,9 @@ def plot_time_waveform(stream, markers='no'):
     fig = plt.figure(constrained_layout=False)
     gspec = fig.add_gridspec(nrows=len(stream), ncols=1, left=0.08, right=0.95, wspace=0, hspace=0)
     col = 0
+    stream.detrend("linear")
+    # stream.taper(max_percentage=0.05, type="hann")
+    stream.filter("bandpass", freqmin=50, freqmax=10000)
     for index, trace in enumerate(stream.traces):
         ax = fig.add_subplot(gspec[index, col])
         # plot data * 10000 / 32000 mV

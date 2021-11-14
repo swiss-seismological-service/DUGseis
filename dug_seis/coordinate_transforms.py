@@ -54,8 +54,11 @@ import numpy as np
 import pyproj
 
 # For convenience.
-EPSG_CODES = {"WGS84": 4326, "CH1903": 21781}
-
+EPSG_CODES = {"WGS84": 4326,
+              "CH1903": 21781,
+              "LV93": 21781,
+              "CH1903+": 2056,
+              "LV95": 2056}
 
 @functools.lru_cache(maxsize=128)
 def _get_transformer(
