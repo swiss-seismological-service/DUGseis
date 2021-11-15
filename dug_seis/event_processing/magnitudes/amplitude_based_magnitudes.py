@@ -22,6 +22,16 @@ from obspy.core.event import Magnitude
 from obspy.core.event.magnitude import Amplitude, StationMagnitude, StationMagnitudeContribution
 from obspy.core.event.base import TimeWindow, WaveformStreamID
 import uuid
+import logging
+logger = logging.getLogger(__name__)
+
+
+
+def is_time_between(begin_time, end_time, check_time):
+    if begin_time < end_time:
+        return check_time >= begin_time and check_time <= end_time
+    else:  # crosses midnight
+        return check_time >= begin_time or check_time <= end_time
 
 
 def amplitude_based_relative_magnitude(st_event, event):
@@ -45,15 +55,31 @@ def amplitude_based_relative_magnitude(st_event, event):
         dist = event.origins[0].arrivals[index].distance  # get distances
         s_arrival = event.preferred_origin().time + (dist/s_wave_velocity)  # calc. theoretical s-wave arrival
         delta_p_s = s_arrival - pick.time  # time between s-arrival and p-pick
-        if delta_p_s < 0:
+        signal_window_start_time = pick.time - delta_p_s
+        signal_window_end_time = pick.time + delta_p_s
+        noise_window_start_time = pick.time - 2*delta_p_s
+        noise_window_end_time = pick.time
+
+        # magnitude computation is omitted when delta_p_s or signal/noise windows are not within the st_event time
+        # interval
+        if index == 6:
+            x = 2
+
+        if ((delta_p_s < 0)
+                or not is_time_between(signal_copy[0].stats.starttime, signal_copy[0].stats.endtime, signal_window_start_time)
+                or not is_time_between(signal_copy[0].stats.starttime, signal_copy[0].stats.endtime, signal_window_end_time)
+                or not is_time_between(noise_copy[0].stats.starttime, noise_copy[0].stats.endtime, noise_window_start_time)
+                or not is_time_between(noise_copy[0].stats.starttime, noise_copy[0].stats.endtime, noise_window_end_time)):
+
             continue
+
         distances.append(dist)  # only the distances for which an amplitude can be estimated
         t_window.append(TimeWindow(begin=0.0, end=delta_p_s * 2, reference=pick.time - delta_p_s))  # prepare
         # "Amplitude" class TimeWindow
 
         # get signal window
         signal = signal_copy.select(id=pick.waveform_id.id)[0]
-        signal = signal.trim(starttime=pick.time - delta_p_s, endtime=pick.time + delta_p_s)
+        signal = signal.trim(starttime=signal_window_start_time, endtime=signal_window_end_time)
         signal = signal.detrend('constant')
         signal.taper(max_percentage=0.05, type="hann")
         signal = signal.filter('bandpass', freqmin=filter_freq_min, freqmax=filter_freq_max,
@@ -62,7 +88,7 @@ def amplitude_based_relative_magnitude(st_event, event):
 
         # get noise window
         noise = noise_copy.select(id=pick.waveform_id.id)[0]
-        noise = noise.trim(starttime=pick.time - 2*delta_p_s, endtime=pick.time)
+        noise = noise.slice(starttime=noise_window_start_time, endtime=noise_window_end_time)
         noise = noise.detrend('constant')
         noise.taper(max_percentage=0.05, type="hann")
         noise = noise.filter('bandpass', freqmin=filter_freq_min, freqmax=filter_freq_max,
@@ -85,6 +111,9 @@ def amplitude_based_relative_magnitude(st_event, event):
                       time_window=TimeWindow(begin=t_window[count].begin, end=t_window[count].end,
                                              reference=t_window[count].reference)))
         count += 1
+    if not event.amplitudes:  # if no amplitudes are assigned return from the definition
+        delattr(event, 'amplitudes')
+        return event
 
     # Magnitude determination per station
     f_0 = (filter_freq_max - filter_freq_min) / 2 + filter_freq_min  # dominant frequency [Hz]
@@ -129,5 +158,8 @@ def amplitude_based_relative_magnitude(st_event, event):
 
     # append magnitude
     event.magnitudes.append(m)
+    logger.info(
+        f"MA_net successfully computed: {MA_network:.2f}")
+    # f"Network magnitude successfully computed: MA{MA_network:.2f}")
 
     return event

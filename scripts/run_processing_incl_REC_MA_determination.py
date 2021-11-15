@@ -168,10 +168,11 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
         # get magnitude
         event = amplitude_based_relative_magnitude(st_event, event)
 
-        # plot magnitude figure
-        fig = plot_waveform_characteristic_function_magnitude(st_event, st_window, lt_window, tr_on, tr_off, event)
-        fig.set_size_inches(11.69, 8.27)
-        fig.show()
+        # plot magnitude figure if magnitude computed
+        if event.magnitudes:
+            fig = plot_waveform_characteristic_function_magnitude(st_event, st_window, lt_window, tr_on, tr_off, event)
+            fig.set_size_inches(11.69, 8.27)
+            fig.show()
 
         # Write the classification as a comment.
         event.comments = [
