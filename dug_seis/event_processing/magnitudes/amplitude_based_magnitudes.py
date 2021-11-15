@@ -62,9 +62,6 @@ def amplitude_based_relative_magnitude(st_event, event):
 
         # magnitude computation is omitted when delta_p_s or signal/noise windows are not within the st_event time
         # interval
-        if index == 6:
-            x = 2
-
         if ((delta_p_s < 0)
                 or not is_time_between(signal_copy[0].stats.starttime, signal_copy[0].stats.endtime, signal_window_start_time)
                 or not is_time_between(signal_copy[0].stats.starttime, signal_copy[0].stats.endtime, signal_window_end_time)
