@@ -108,7 +108,7 @@ def amplitude_based_relative_magnitude(st_event, event):
                       time_window=TimeWindow(begin=t_window[count].begin, end=t_window[count].end,
                                              reference=t_window[count].reference)))
         count += 1
-    if not event.amplitudes:  # if no amplitudes are assigned return from the definition
+    if len(event.amplitudes) < 1:  # if les than two amplitudes are assigned return from the definition
         delattr(event, 'amplitudes')
         return event
 
