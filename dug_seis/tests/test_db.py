@@ -1120,3 +1120,57 @@ def test_write_and_read_same_picks_used_in_multiple_arrivals():
     del event.picks[0]
     # Now they are the same.
     assert event == events[0]
+
+
+def test_add_origin_to_event_and_change_preferred_origin():
+    """
+    Just to make sure this works as expected.
+    """
+    event = obspy.core.event.Event()
+    event.origins = [
+        obspy.core.event.Origin(
+            time=obspy.UTCDateTime(), latitude=32.034, longitude=12.0, depth=10020.0
+        )
+    ]
+    pref_id = event.origins[0].resource_id
+    event.preferred_origin_id = pref_id
+    assert event.preferred_origin() == event.origins[0]
+
+    # Make sure the QuakeML file would be valid.
+    with io.BytesIO() as buf:
+        event.write(buf, format="quakeml", validate=True)
+
+    db = DB(url="sqlite://:memory:")
+    db += event
+
+    assert db.count("Event") == 1
+    assert db.count("Origin") == 1
+    assert db.count("OriginReference") == 1
+
+    assert db.get_objects(object_type="Event")[0] == event
+
+    # Add a new origin.
+    event.origins.append(
+        obspy.core.event.Origin(
+            time=obspy.UTCDateTime(10.0), latitude=33.034, longitude=32.0, depth=12020.0
+        )
+    )
+    # Did not change the preferred origin yet.
+    assert event.preferred_origin() == event.origins[0]
+
+    new_pref_id = event.origins[1].resource_id
+    event.preferred_origin_id = new_pref_id
+    # Did change it.
+    assert event.preferred_origin() == event.origins[1]
+
+    # No change yet in the database.
+    assert db.get_objects(object_type="Event")[0].preferred_origin() == event.origins[0]
+
+    # Adding to the database should change it.
+    db.update_event(event=event)
+    assert db.get_objects(object_type="Event")[0] == event
+    assert db.get_objects(object_type="Event")[0].preferred_origin() == event.origins[1]
+
+    assert db.count("Event") == 1
+    assert db.count("Origin") == 2
+    assert db.count("OriginReference") == 2

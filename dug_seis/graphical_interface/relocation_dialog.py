@@ -291,7 +291,10 @@ class RelocationDialog(QtWidgets.QDialog):
         if not self.new_origin:
             print("No new origin")
             return
+
+        # Add the origin to the event and set it to the new preferred origin.
         self.event.origins.append(self.new_origin)
+        self.event.preferred_origin_id = self.new_origin.resource_id
 
         # Save and update.
         self.project.db.update_event(self.event)
