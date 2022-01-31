@@ -36,10 +36,12 @@ from obspy.core.event import (
 def locate_in_homogeneous_background_medium(
     picks: typing.List[Pick],
     coordinates: typing.Dict[str, np.array],
-    velocity: float,
+    velocity: typing.Union[float, typing.Dict[str, float]],
     damping: float,
     local_to_global_coordinates: typing.Callable,
-    anisotropic_params: typing.Optional[typing.Dict[str, float]] = None,
+    anisotropic_params: typing.Optional[
+        typing.Union[typing.Dict[str, float], typing.Dict[str, typing.Dict[str, float]]]
+    ] = None,
     verbose: bool = False,
 ) -> Event:
     """
@@ -49,7 +51,9 @@ def locate_in_homogeneous_background_medium(
     This version will only consider P phase picks and ignores all other picks.
 
     Args:
-        picks: List of pick objects to use.
+        picks: List of pick objects to use. The all must either be the same
+            phase, or a the velocity + anisotropic parameters must be given
+            for each pick type.
         coordinates: Dictionary mapping channel ids to cartesian coordinates.
         velocity: P wave velocity or the minimum velocity in the anisotropic case.
         damping: Damping.
@@ -76,16 +80,52 @@ def locate_in_homogeneous_background_medium(
             f"{list(anisotropic_params.keys())}"
         )
 
-    # Filter to only use P-phase picks.
+    # Set of all phases available in the picks.
+    all_phases = set()
+    # Collect all picks.
     event_picks = []
-    for pick in picks:
+
+    for i, pick in enumerate(picks):
         pick = copy.deepcopy(pick)
-        if pick.phase_hint and pick.phase_hint.lower() != "p":
-            continue
+        # Phase hints are necessary.
+        if not pick.phase_hint:
+            raise ValueError(f"Pick with index {i} has no phase hint.")
+        all_phases.add(pick.phase_hint)
         event_picks.append(pick)
 
     if len(event_picks) < 3:
-        raise ValueError("At least 3 P phase picks are required for an event location.")
+        raise ValueError("At least 3 picks are required for an event location.")
+
+    # If velocity is given as a single number but there is only one phase, convert
+    # it to a dictionary.
+    if isinstance(velocity, float) and len(all_phases) == 1:
+        velocity = {list(all_phases)[0]: velocity}
+    if (
+        anisotropic_params
+        and set(anisotropic_params.keys()) == {"inc", "azi", "delta", "epsilon"}
+        and len(all_phases) == 1
+    ):
+        anisotropic_params = {list(all_phases)[0]: anisotropic_params}
+
+    ##
+    # Lots of sanity checks.
+    ##
+    # Raise an exception if multiple phases but only a single velocity.
+    if not isinstance(velocity, dict):
+        raise ValueError(
+            f"Picks available for these phases: {all_phases}. Only a"
+            "single velocity value has been specified. Please specify one "
+            "velocity per phase."
+        )
+
+    velocity_phases = set(velocity.keys())
+    if all_phases != velocity_phases:
+        raise ValueError(
+            f"Must specify one velocity per phase. Phases available in picks: {all_phases}. "
+            f"Velocities are defined for phases: {velocity_phases}"
+        )
+
+    # XXX: Add the same error handling to the anisotropic parameters.
 
     starttime = min([p.time for p in event_picks])
 
@@ -101,7 +141,7 @@ def locate_in_homogeneous_background_medium(
     for i, p in enumerate(event_picks):
         sensor_coords[i, :] = coordinates[p.waveform_id.id]
 
-    vp = velocity * np.ones([npicks]) / 1000.0
+    vel = np.array([velocity[p.phase_hint] for p in event_picks]) / 1000.0
 
     loc = sensor_coords[t_relative.index(min(t_relative)), :] + 0.1
     t0 = min(t_relative)
@@ -113,9 +153,10 @@ def locate_in_homogeneous_background_medium(
     while nit < 100 and np.linalg.norm(dm) > 0.00001:
         nit = nit + 1
 
-        # calculate anisotropic velocities
+        # Calculate anisotropic velocities if necessary.
         if anisotropic_params:
             for i in range(npicks):
+                param_ani = anisotropic_params[event_picks[i].phase_hint]
                 azi = np.arctan2(
                     sensor_coords[i, 0] - loc[0], sensor_coords[i, 1] - loc[1]
                 )
@@ -126,34 +167,32 @@ def locate_in_homogeneous_background_medium(
                 theta = np.arccos(
                     np.cos(inc)
                     * np.cos(azi)
-                    * np.cos(anisotropic_params["inc"])
-                    * np.cos(anisotropic_params["azi"])
+                    * np.cos(param_ani["inc"])
+                    * np.cos(param_ani["azi"])
                     + np.cos(inc)
                     * np.sin(azi)
-                    * np.cos(anisotropic_params["inc"])
-                    * np.sin(anisotropic_params["azi"])
-                    + np.sin(inc) * np.sin(anisotropic_params["inc"])
+                    * np.cos(param_ani["inc"])
+                    * np.sin(param_ani["azi"])
+                    + np.sin(inc) * np.sin(param_ani["inc"])
                 )
-                vp[i] = (
-                    velocity
+                vel[i] = (
+                    velocity[event_picks[i].phase_hint]
                     / 1000.0
                     * (
                         1.0
-                        + anisotropic_params["delta"]
-                        * np.sin(theta) ** 2
-                        * np.cos(theta) ** 2
-                        + anisotropic_params["epsilon"] * np.sin(theta) ** 4
+                        + param_ani["delta"] * np.sin(theta) ** 2 * np.cos(theta) ** 2
+                        + param_ani["epsilon"] * np.sin(theta) ** 4
                     )
                 )
 
         dist = [np.linalg.norm(loc - sensor_coords[i, :]) for i in range(npicks)]
-        tcalc = [dist[i] / vp[i] + t0 for i in range(npicks)]
+        tcalc = [dist[i] / vel[i] + t0 for i in range(npicks)]
 
         res = [t_relative[i] - tcalc[i] for i in range(npicks)]
         rms = np.linalg.norm(res) / npicks
         for j in range(3):
             for i in range(npicks):
-                jacobian[i, j] = -(sensor_coords[i, j] - loc[j]) / (vp[i] * dist[i])
+                jacobian[i, j] = -(sensor_coords[i, j] - loc[j]) / (vel[i] * dist[i])
         jacobian[:, 3] = np.ones(npicks)
 
         dm = np.matmul(
@@ -196,8 +235,17 @@ def locate_in_homogeneous_background_medium(
         s = "isotropic"
     else:
         s = "anisotropic"
+
+    # Assemble a velocity string for the earth model id.
+    vel_str = "__".join(
+        [
+            f"{i[0]}_{int(round(i[1]))}"
+            for i in sorted(velocity.items(), key=lambda x: x[0])
+        ]
+    )
+
     earth_model_id = ResourceIdentifier(
-        id=f"earth_model/homogeneous/{s}/velocity={int(round(velocity))}"
+        id=f"earth_model/homogeneous/{s}/velocity={vel_str}"
     )
     method_id = "method/p_wave_travel_time/homogeneous_model"
 
