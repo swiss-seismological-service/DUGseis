@@ -28,8 +28,8 @@ def fft_amp(stream):
     """
     time = get_time_vector(stream) / 1000  # in seconds
     # fig = plt.figure(constrained_layout=False)
-    # gspec = fig.add_gridspec(nrows=len(stream), ncols=1, left=0.08, right=0.95, wspace=0, hspace=0)
-    col = 0
+    # gspec = fig.add_gridspec(nrows=len(stream), ncols=1, left=0.08, right=0.95,
+    # wspace=0, hspace=0)
     plt.figure(figsize=(11.69 / 2, 8.27 / 2))
     Y = np.empty((0, int(len(stream.traces[0]) / 2 + 1)), dtype=float)
     N = int(len(stream.traces[0]) / 2 + 1)
@@ -133,7 +133,7 @@ def ax_plot_x_y_data(ax, x_data, y_data, unit_pa="c", format_pa=".3f", markers="
         ax.plot(x_data, y_data, linewidth=0.75, zorder=8)
 
     ax.set_xlim([np.min(x_data), np.max(x_data)])
-    p = np.percentile(y_data, 95)
+    # p = np.percentile(y_data, 95)
     amp_max = format(np.nanmax(np.absolute(y_data)), format_pa)  # .1f
     props = dict(boxstyle="round", facecolor="white", alpha=0.8, edgecolor="none")
     plt.text(
@@ -346,7 +346,8 @@ def plot_waveform_fft_amplitude(stream):
                 ax.set_ylabel(y_label, rotation=0, fontsize=9)
                 ax.yaxis.set_label_coords(-0.055, 0.27)
             else:
-                data_cft = recursive_sta_lta(trace.data, nsta, nlta)
+                # XXX: nsta and nlta are not defined so this would always fail.
+                data_cft = recursive_sta_lta(trace.data, nsta, nlta)  # NOQA
                 ax_plot_x_y_data(
                     ax, time, data_cft, unit_pa="", format_pa=".1f", markers="no"
                 )

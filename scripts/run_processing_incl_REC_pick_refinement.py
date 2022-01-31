@@ -19,9 +19,6 @@ from dug_seis.event_processing.location.locate_homogeneous import (
     locate_in_homogeneous_background_medium,
 )
 
-from obspy.signal.trigger import plot_trigger
-from obspy.signal.trigger import recursive_sta_lta
-
 
 # The logging is optional, but useful.
 util.setup_logging_to_file(
