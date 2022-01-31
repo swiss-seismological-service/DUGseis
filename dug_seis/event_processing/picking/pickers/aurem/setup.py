@@ -60,7 +60,9 @@ setup(
 # These lines are for demonstration purposes only; distutils users
 # should trust that distutils gets the invocations right.
 
-# The manifest template has one command per line, where each command specifies a set of files to include or exclude from the source distribution. For an example, again we turn to the Distutils’ own manifest template:
+# The manifest template has one command per line, where each command specifies
+# a set of files to include or exclude from the source distribution. For an
+# example, again we turn to the Distutils’ own manifest template:
 
 # include *.txt
 # recursive-include examples *.txt *.py

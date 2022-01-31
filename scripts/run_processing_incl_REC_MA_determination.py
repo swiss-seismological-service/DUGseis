@@ -22,12 +22,8 @@ from dug_seis.event_processing.magnitudes.amplitude_based_magnitudes import (
     amplitude_based_relative_magnitude,
 )
 from dug_seis.plotting.plotting import (
-    plot_time_waveform,
-    plot_time_characteristic_function,
-    plot_waveform_characteristic_function,
     plot_waveform_characteristic_function_magnitude,
 )
-from obspy.core.event import Magnitude
 
 
 # The logging is optional, but useful.
