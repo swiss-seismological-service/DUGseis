@@ -184,7 +184,9 @@ def locate_in_homogeneous_background_medium(
     event.picks = event_picks
 
     # calculate distances source - sensors
-    dists = np.linalg.norm(sensor_coords - np.tile(loc, (len(sensor_coords), 1)), axis=1)
+    dists = np.linalg.norm(
+        sensor_coords - np.tile(loc, (len(sensor_coords), 1)), axis=1
+    )
 
     # Convert local coordinates to WGS84.
     latitude, longitude, depth = local_to_global_coordinates(loc)
@@ -222,7 +224,7 @@ def locate_in_homogeneous_background_medium(
                 time_residual=res[_i] / 1000,
                 phase="P",
                 earth_model_id=earth_model_id,
-                distance=dists[_i]
+                distance=dists[_i],
             )
         )
 

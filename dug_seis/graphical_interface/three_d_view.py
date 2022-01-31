@@ -287,7 +287,7 @@ class ThreeDView:
         # Some heuristics to get nice axes.
         scale = max(coordinates.ptp(axis=0))
         exponent = len(str(int(scale / 10))) - 1
-        dx = 10 ** exponent
+        dx = 10**exponent
         # Symmetric length.
         length = round(max(xr, yr) / 2, -exponent) + dx
 

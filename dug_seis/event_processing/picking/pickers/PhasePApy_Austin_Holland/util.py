@@ -12,7 +12,7 @@ import numpy as np
 
 def rms(x, axis=None):
     """Function to calculate the root mean square value of an array."""
-    return np.sqrt(np.mean(x ** 2, axis=axis))
+    return np.sqrt(np.mean(x**2, axis=axis))
 
 
 def rolling_window(a, window):

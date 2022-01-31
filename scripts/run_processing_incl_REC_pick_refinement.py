@@ -119,7 +119,6 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
             },
         )
 
-        
         # We want at least three picks, otherwise we don't designate it an event.
         if len(picks) < 3:
             # Optionally save the picks to the database as unassociated picks.
@@ -128,7 +127,7 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
             continue
 
         # picker visual
-        #for index, pick in enumerate(picks):
+        # for index, pick in enumerate(picks):
         #    trace_1 = st_event.select(network=pick.waveform_id.network_code,
         #                                          station=pick.waveform_id.station_code,
         #                                          channel=pick.waveform_id.channel_code,
@@ -137,16 +136,19 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
         #    cft = recursive_sta_lta(trace_1.data, 70, 700)
         #    plot_trigger(trace_1, cft, 5.5, 2.0)
 
-
         # refine recSTA/LTA picks here
         win_pre = 0.0025
         win_post = 0.0025
         for index, pick in enumerate(picks):
-            trace_1 = st_event.select(network=pick.waveform_id.network_code,
-                                      station=pick.waveform_id.station_code,
-                                      channel=pick.waveform_id.channel_code,
-                                      location=pick.waveform_id.location_code)[0]
-            trace_1 = trace_1.trim(starttime=pick.time - win_pre, endtime=pick.time + win_post)
+            trace_1 = st_event.select(
+                network=pick.waveform_id.network_code,
+                station=pick.waveform_id.station_code,
+                channel=pick.waveform_id.channel_code,
+                location=pick.waveform_id.location_code,
+            )[0]
+            trace_1 = trace_1.trim(
+                starttime=pick.time - win_pre, endtime=pick.time + win_post
+            )
 
             recobj = REC(trace_1)
             recobj.work()

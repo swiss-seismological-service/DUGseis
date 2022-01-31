@@ -3,13 +3,12 @@ from obspy import read, UTCDateTime
 
 
 def test_aurem_rec():
-    """ Test REC function aganist obspy.read() Z channel
-    """
+    """Test REC function aganist obspy.read() Z channel"""
     errors = []
     st = read()
 
     # Process
-    st.filter('highpass', freq=2, corners=4)
+    st.filter("highpass", freq=2, corners=4)
     st.trim(st[0].stats.starttime + 1, UTCDateTime("2009-08-24T00:20:11"))
 
     # Create instance + pick
@@ -33,13 +32,12 @@ def test_aurem_rec():
 
 
 def test_aurem_aic():
-    """ Test REC function aganist obspy.read() Z channel
-    """
+    """Test REC function aganist obspy.read() Z channel"""
     errors = []
     st = read()
 
     # Process
-    st.filter('highpass', freq=2, corners=4)
+    st.filter("highpass", freq=2, corners=4)
     st.trim(st[0].stats.starttime + 1, UTCDateTime("2009-08-24T00:20:11"))
 
     # Create Instance + picks

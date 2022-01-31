@@ -104,20 +104,14 @@ def test_retrieving_pick_by_resource_id():
     for p in event.picks:
         db += p
 
-    assert (
-        db.get_objects(
-            object_type="Pick",
-            where={"publicID__eq": event.picks[0].resource_id.resource_id},
-        )
-        == [event.picks[0]]
-    )
-    assert (
-        db.get_objects(
-            object_type="Pick",
-            where={"publicID__eq": event.picks[1].resource_id.resource_id},
-        )
-        == [event.picks[1]]
-    )
+    assert db.get_objects(
+        object_type="Pick",
+        where={"publicID__eq": event.picks[0].resource_id.resource_id},
+    ) == [event.picks[0]]
+    assert db.get_objects(
+        object_type="Pick",
+        where={"publicID__eq": event.picks[1].resource_id.resource_id},
+    ) == [event.picks[1]]
 
 
 def test_parent_object_id_logic():
