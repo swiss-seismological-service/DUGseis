@@ -123,7 +123,7 @@ def test_locate_in_homogeneous_isotropic_medium(
     assert len(o.arrivals) == 8
 
     iso = "anisotropic" if anisotropic_params else "isotropic"
-    earth_model_id_str = f"earth_model/homogeneous/{iso}/velocity=3500"
+    earth_model_id_str = f"earth_model/homogeneous/{iso}/velocity=P_3500"
 
     for pick, arrival in zip(picks, o.arrivals):
         assert arrival.pick_id == pick.resource_id
