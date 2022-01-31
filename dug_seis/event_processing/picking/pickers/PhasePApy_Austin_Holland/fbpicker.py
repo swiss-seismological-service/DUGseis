@@ -425,7 +425,7 @@ class FBSummary:
         for i in range(n_bands):
             ax = plt.subplot(n_bands + 1, 1, i + 2)
             ax.plot(t, BF[i], c="k")
-            subtitle = str(st * 2 ** i) + unit
+            subtitle = str(st * 2**i) + unit
             ax.text(
                 0.5, 0.8, subtitle, horizontalalignment="center", transform=ax.transAxes
             )
@@ -478,7 +478,7 @@ class FBSummary:
         for i in range(n_bands):
             ax = plt.subplot(n_bands + 1, 1, i + 2)
             ax.plot(t, self.FC[i], c="k")
-            subtitle = str(freq * 2 ** i) + unit
+            subtitle = str(freq * 2**i) + unit
             ax.text(
                 0.5, 0.8, subtitle, horizontalalignment="center", transform=ax.transAxes
             )

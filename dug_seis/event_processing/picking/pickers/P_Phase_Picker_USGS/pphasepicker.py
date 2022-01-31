@@ -32,7 +32,7 @@ def pphasepicker(input, Tn, xi):
     omegan = 2 * np.pi / Tn
     # natural frequency in radian/second
     C = 2 * xi * omegan  # viscous damping term
-    K = omegan ** 2  # stiffness term
+    K = omegan**2  # stiffness term
     # y(:,1) = [0;0]             # response vector
     y = np.array([[0, 0]])
 
@@ -68,7 +68,7 @@ def pphasepicker(input, Tn, xi):
         )  # check
 
     veloc = y[:, 1]  # relative velocity of mass
-    Edi = 2 * xi * omegan * veloc ** 2
+    Edi = 2 * xi * omegan * veloc**2
     # integrand of viscous damping energy
 
     # appy histogram method

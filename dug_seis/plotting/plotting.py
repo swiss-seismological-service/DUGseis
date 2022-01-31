@@ -30,7 +30,7 @@ def fft_amp(stream):
     # fig = plt.figure(constrained_layout=False)
     # gspec = fig.add_gridspec(nrows=len(stream), ncols=1, left=0.08, right=0.95, wspace=0, hspace=0)
     col = 0
-    plt.figure(figsize=(11.69/2, 8.27/2))
+    plt.figure(figsize=(11.69 / 2, 8.27 / 2))
     Y = np.empty((0, int(len(stream.traces[0]) / 2 + 1)), dtype=float)
     N = int(len(stream.traces[0]) / 2 + 1)
     dt = time[1] - time[0]
@@ -58,21 +58,14 @@ def fft_amp(stream):
     # plt.ylabel("$log_{10}(A)$ [mV/Hz]")
     # plt.xlabel("frequency [Hz]")
 
+    return X, Y
 
-    return X,Y
-
-        # plt.subplot(122)
-        # plt.plot(X, 2.0 * np.abs(Yhann[:N]) / N)
-        # plt.tight_layout()
-        # plt.yscale('log')
-        # plt.show()
-        # x = 2
-
-
-
-
-
-
+    # plt.subplot(122)
+    # plt.plot(X, 2.0 * np.abs(Yhann[:N]) / N)
+    # plt.tight_layout()
+    # plt.yscale('log')
+    # plt.show()
+    # x = 2
 
     # t = np.linspace(0, 1, 10000, endpoint=True)
     # f = 20  # Frequency in Hz
@@ -125,32 +118,44 @@ def get_time_vector(stream):
 
     if len(time) != stream.traces[0].stats.npts:
         if stream.traces[0].stats.npts > len(time):  # append to samp_v if too short
-            time = np.append(time, time[len(time) - 1] + (time[len(time) - 1] - time[len(time) - 2]))
+            time = np.append(
+                time, time[len(time) - 1] + (time[len(time) - 1] - time[len(time) - 2])
+            )
         else:
             time = time[:-1].copy()  # take one entry off
     return time
 
 
-def ax_plot_x_y_data(ax, x_data, y_data, unit_pa='c', format_pa='.3f', markers='no'):
-    if markers == 'yes':
-        ax.plot(x_data, y_data, linewidth=0.75, zorder=8, marker='.')
+def ax_plot_x_y_data(ax, x_data, y_data, unit_pa="c", format_pa=".3f", markers="no"):
+    if markers == "yes":
+        ax.plot(x_data, y_data, linewidth=0.75, zorder=8, marker=".")
     else:
         ax.plot(x_data, y_data, linewidth=0.75, zorder=8)
 
     ax.set_xlim([np.min(x_data), np.max(x_data)])
     p = np.percentile(y_data, 95)
-    amp_max = format(np.nanmax(np.absolute(y_data)), format_pa) # .1f
-    props = dict(boxstyle='round', facecolor='white', alpha=0.8, edgecolor='none')
-    plt.text(1, 0.5, 'PA: ' + str(amp_max) + ' ' + unit_pa,
-             horizontalalignment='right',
-             verticalalignment='center',
-             transform=ax.transAxes, color='black', fontsize=10, bbox=props, zorder=10)
+    amp_max = format(np.nanmax(np.absolute(y_data)), format_pa)  # .1f
+    props = dict(boxstyle="round", facecolor="white", alpha=0.8, edgecolor="none")
+    plt.text(
+        1,
+        0.5,
+        "PA: " + str(amp_max) + " " + unit_pa,
+        horizontalalignment="right",
+        verticalalignment="center",
+        transform=ax.transAxes,
+        color="black",
+        fontsize=10,
+        bbox=props,
+        zorder=10,
+    )
     # basic plotting options
-    ax.grid(b=None, which='major', axis='x', color='silver', linestyle='-', linewidth=0.25)
+    ax.grid(
+        b=None, which="major", axis="x", color="silver", linestyle="-", linewidth=0.25
+    )
     ax.set_axisbelow(True)
-    ax.axhline(color='black', linewidth=0.4, zorder=5)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
+    ax.axhline(color="black", linewidth=0.4, zorder=5)
+    ax.spines["right"].set_visible(False)
+    ax.spines["top"].set_visible(False)
     ax.tick_params(top=False)
     ax.tick_params(right=False)
     # y-axis
@@ -162,14 +167,16 @@ def ax_plot_x_y_data(ax, x_data, y_data, unit_pa='c', format_pa='.3f', markers='
     ax.set_ylim(bottom=-np.abs(ylim[ind_ylim_max]), top=np.abs(ylim[ind_ylim_max]))
 
 
-def plot_time_waveform(stream, markers='no'):
+def plot_time_waveform(stream, markers="no"):
     # chose plotting style
-    plt.style.use('seaborn-bright')
+    plt.style.use("seaborn-bright")
     # get time vector
     time = get_time_vector(stream)
     # generate figure with subplots
     fig = plt.figure(constrained_layout=False)
-    gspec = fig.add_gridspec(nrows=len(stream), ncols=1, left=0.08, right=0.95, wspace=0, hspace=0)
+    gspec = fig.add_gridspec(
+        nrows=len(stream), ncols=1, left=0.08, right=0.95, wspace=0, hspace=0
+    )
     col = 0
     # stream.detrend("linear")
     # stream.taper(max_percentage=0.05, type="hann")
@@ -177,10 +184,10 @@ def plot_time_waveform(stream, markers='no'):
     for index, trace in enumerate(stream.traces):
         ax = fig.add_subplot(gspec[index, col])
         # plot data * 10000 / 32000 mV
-        if 'XB.01' in trace.id:
+        if "XB.01" in trace.id:
             data = np.multiply(trace.data, 50 / 2**16)
         else:
-            data = np.multiply(trace.data, 10000 / 2 ** 16)
+            data = np.multiply(trace.data, 10000 / 2**16)
         # elif trace.id == 'XB.01.16.001' or trace.id == 'XB.01.24.001':
         #     data = np.multiply(trace.data, 100 / 2 ** 16)
         # elif trace.id == 'XB.01.17.001' or trace.id == 'XB.01.25.001':
@@ -197,7 +204,7 @@ def plot_time_waveform(stream, markers='no'):
         #     data = np.multiply(trace.data, 10000 / 2**16)
 
         data = data - np.mean(data)
-        ax_plot_x_y_data(ax, time, data, unit_pa='mV', markers=markers)
+        ax_plot_x_y_data(ax, time, data, unit_pa="mV", markers=markers)
 
         # Percentiles
         # p = np.percentile(data, 95)
@@ -207,33 +214,35 @@ def plot_time_waveform(stream, markers='no'):
         # y-axis
         plot_y_labels(trace, ax)
 
-
-
         if index < gspec.nrows - 1:
             ax.set_xticklabels([])
             # ax.set_xticks([])
-            ax.spines['bottom'].set_visible(False)
+            ax.spines["bottom"].set_visible(False)
         else:
-            ax.set_xlabel('time [ms]')
+            ax.set_xlabel("time [ms]")
     # plt.suptitle('time-waveform \nstarttime: ' + str(stream[0].stats.starttime), fontsize=10)
-    plt.suptitle('time-waveform \nstarttime: ' + str(stream[0].stats.starttime), fontsize=10)
+    plt.suptitle(
+        "time-waveform \nstarttime: " + str(stream[0].stats.starttime), fontsize=10
+    )
     return fig
 
 
 def plot_time_characteristic_function(stream, nsta, nlta):
     # chose plotting style
-    plt.style.use('seaborn-bright')
+    plt.style.use("seaborn-bright")
     # get time vector
     time = get_time_vector(stream)
     # generate figure with subplots
     fig = plt.figure(constrained_layout=False)
-    gspec = fig.add_gridspec(nrows=len(stream), ncols=1, left=0.08, right=0.95, wspace=0, hspace=0)
+    gspec = fig.add_gridspec(
+        nrows=len(stream), ncols=1, left=0.08, right=0.95, wspace=0, hspace=0
+    )
     col = 0
     for index, trace in enumerate(stream.traces):
         ax = fig.add_subplot(gspec[index, col])
         data_cft = recursive_sta_lta(trace.data, nsta, nlta)
         # plot data
-        ax_plot_x_y_data(ax, time, data_cft, unit_pa='', format_pa='.1f', markers='no')
+        ax_plot_x_y_data(ax, time, data_cft, unit_pa="", format_pa=".1f", markers="no")
         # plot specific settings
         # y-axis
         plot_y_labels(trace, ax)
@@ -241,92 +250,130 @@ def plot_time_characteristic_function(stream, nsta, nlta):
         if index < gspec.nrows - 1:
             ax.set_xticklabels([])
             # ax.set_xticks([])
-            ax.spines['bottom'].set_visible(False)
+            ax.spines["bottom"].set_visible(False)
         else:
-            ax.set_xlabel('time [ms]')
-    plt.suptitle('time-characterisitc function \nstarttime: ' + str(trace.stats.starttime), fontsize=10)
+            ax.set_xlabel("time [ms]")
+    plt.suptitle(
+        "time-characterisitc function \nstarttime: " + str(trace.stats.starttime),
+        fontsize=10,
+    )
     return fig
 
 
 def plot_y_labels(trace, ax):
-    y_label = '{0}.{1}\n{2}.{3}'.format(trace.stats.network,
-                                        trace.stats.station,
-                                        trace.stats.location,
-                                        trace.stats.channel)
-    handle = plt.text(-0.08, 0.5, y_label, transform=ax.transAxes, fontsize=11,
-             horizontalalignment='left', verticalalignment='center')
+    y_label = "{0}.{1}\n{2}.{3}".format(
+        trace.stats.network,
+        trace.stats.station,
+        trace.stats.location,
+        trace.stats.channel,
+    )
+    handle = plt.text(
+        -0.08,
+        0.5,
+        y_label,
+        transform=ax.transAxes,
+        fontsize=11,
+        horizontalalignment="left",
+        verticalalignment="center",
+    )
     return handle
 
 
 def plot_waveform_characteristic_function(stream, nsta, nlta):
     # chose plotting style
-    plt.style.use('seaborn-bright')
+    plt.style.use("seaborn-bright")
     # get time vector
     time = get_time_vector(stream)
     # generate figure with subplots
     fig = plt.figure(constrained_layout=False)
     ncols = 2
-    gspec = fig.add_gridspec(nrows=len(stream), ncols=ncols, left=0.08, right=0.95, wspace=0.1, hspace=0)
+    gspec = fig.add_gridspec(
+        nrows=len(stream), ncols=ncols, left=0.08, right=0.95, wspace=0.1, hspace=0
+    )
     for col in range(ncols):
         for index, trace in enumerate(stream.traces):
             ax = fig.add_subplot(gspec[index, col])
             if col == 0:
-                ax_plot_x_y_data(ax, time, trace.data, unit_pa='c', format_pa='.1f', markers='no')
+                ax_plot_x_y_data(
+                    ax, time, trace.data, unit_pa="c", format_pa=".1f", markers="no"
+                )
                 # y-axis (only in time column)
                 handle = plot_y_labels(trace, ax)
                 handle.set_position((-0.13, 0.5))
             else:
                 data_cft = recursive_sta_lta(trace.data, nsta, nlta)
-                ax_plot_x_y_data(ax, time, data_cft, unit_pa='', format_pa='.1f', markers='no')
+                ax_plot_x_y_data(
+                    ax, time, data_cft, unit_pa="", format_pa=".1f", markers="no"
+                )
             if index < gspec.nrows - 1:
                 ax.set_xticklabels([])
                 # ax.set_xticks([])
-                ax.spines['bottom'].set_visible(False)
+                ax.spines["bottom"].set_visible(False)
             else:
-                ax.set_xlabel('time [ms]')
-    plt.suptitle('waveform-characterisitc function \nstarttime: ' + str(trace.stats.starttime), fontsize=10)
+                ax.set_xlabel("time [ms]")
+    plt.suptitle(
+        "waveform-characterisitc function \nstarttime: " + str(trace.stats.starttime),
+        fontsize=10,
+    )
     return fig
 
 
 def plot_waveform_fft_amplitude(stream):
     # chose plotting style
-    plt.style.use('seaborn-bright')
+    plt.style.use("seaborn-bright")
     # get time vector
     time = get_time_vector(stream)
     # generate figure with subplots
     fig = plt.figure(constrained_layout=False)
     ncols = 2
-    gspec = fig.add_gridspec(nrows=len(stream), ncols=ncols, left=0.08, right=0.95, wspace=0.1, hspace=0)
+    gspec = fig.add_gridspec(
+        nrows=len(stream), ncols=ncols, left=0.08, right=0.95, wspace=0.1, hspace=0
+    )
     for col in range(ncols):
         for index, trace in enumerate(stream.traces):
             ax = fig.add_subplot(gspec[index, col])
             if col == 0:
-                ax_plot_x_y_data(ax, time, trace.data, unit_pa='c', format_pa='.1f', markers='no')
+                ax_plot_x_y_data(
+                    ax, time, trace.data, unit_pa="c", format_pa=".1f", markers="no"
+                )
                 # y-axis (only in time column)
-                y_label = '{0}.{1}\n{2}.{3}'.format(trace.stats.network,
-                                                    trace.stats.station,
-                                                    trace.stats.location,
-                                                    trace.stats.channel)
+                y_label = "{0}.{1}\n{2}.{3}".format(
+                    trace.stats.network,
+                    trace.stats.station,
+                    trace.stats.location,
+                    trace.stats.channel,
+                )
                 ax.set_ylabel(y_label, rotation=0, fontsize=9)
                 ax.yaxis.set_label_coords(-0.055, 0.27)
             else:
                 data_cft = recursive_sta_lta(trace.data, nsta, nlta)
-                ax_plot_x_y_data(ax, time, data_cft, unit_pa='', format_pa='.1f', markers='no')
+                ax_plot_x_y_data(
+                    ax, time, data_cft, unit_pa="", format_pa=".1f", markers="no"
+                )
             if index < gspec.nrows - 1:
                 ax.set_xticklabels([])
                 # ax.set_xticks([])
-                ax.spines['bottom'].set_visible(False)
+                ax.spines["bottom"].set_visible(False)
             else:
-                ax.set_xlabel('time [ms]')
-    plt.suptitle('waveform-characterisitc function \nstarttime: ' + str(trace.stats.starttime), fontsize=10)
+                ax.set_xlabel("time [ms]")
+    plt.suptitle(
+        "waveform-characterisitc function \nstarttime: " + str(trace.stats.starttime),
+        fontsize=10,
+    )
     return fig
 
 
-def plot_waveform_characteristic_function_magnitude(stream, nsta, nlta, tr_on, tr_off, event):
+def plot_waveform_characteristic_function_magnitude(
+    stream, nsta, nlta, tr_on, tr_off, event
+):
     figure = plot_waveform_characteristic_function(stream, nsta, nlta)
 
     # update title
-    new_title = figure._suptitle._text + "\n" + "$M_A$ net: {:.2f}".format(event.magnitudes[0].mag)
+    new_title = (
+        figure._suptitle._text
+        + "\n"
+        + "$M_A$ net: {:.2f}".format(event.magnitudes[0].mag)
+    )
     figure.suptitle(new_title)
 
     x_min, x_max = np.array(figure.axes[0].get_xlim())
@@ -343,36 +390,75 @@ def plot_waveform_characteristic_function_magnitude(stream, nsta, nlta, tr_on, t
         y_max = figure.axes[index].get_ylim()[1] * 0.2
 
         # P-pick plotting
-        figure.axes[index].scatter(x_pick, y_max, marker='v', color='red', zorder=10,
-                                   alpha=.5, label='P-pick')
+        figure.axes[index].scatter(
+            x_pick, y_max, marker="v", color="red", zorder=10, alpha=0.5, label="P-pick"
+        )
 
-        figure.axes[index + len(event.picks)].hlines(tr_on, x_min, x_max, colors='red', linestyles='dashed',
-                                                     zorder=10, alpha=.5, label='threshold on')
-        figure.axes[index + len(event.picks)].hlines(tr_off, x_min, x_max, colors='green', linestyles='dashed',
-                                                     zorder=10, alpha=.5, label='threshold off')
+        figure.axes[index + len(event.picks)].hlines(
+            tr_on,
+            x_min,
+            x_max,
+            colors="red",
+            linestyles="dashed",
+            zorder=10,
+            alpha=0.5,
+            label="threshold on",
+        )
+        figure.axes[index + len(event.picks)].hlines(
+            tr_off,
+            x_min,
+            x_max,
+            colors="green",
+            linestyles="dashed",
+            zorder=10,
+            alpha=0.5,
+            label="threshold off",
+        )
 
         # update text in first column of subplots
-        if pick.waveform_id.id in amplitude_w_ids:  # only print mag if mag, resp. amplitude exists
-            new_text = "Dist.: {:.1f} m".format(event.origins[0].arrivals[index].distance) + "\n" + \
-                       "SNR: {:.1f}".format(event.amplitudes[count].snr) + "\n" + \
-                       "PA: {:.3f} corr".format(event.amplitudes[count].generic_amplitude) + "\n" + \
-                       "$M_A$ sta.: {:.2f}".format(event.station_magnitudes[count].mag)
-            x_swave = ((event.amplitudes[count].time_window.reference +
-                        event.amplitudes[count].time_window.end) - stream[0].stats.starttime) * 1000
+        if (
+            pick.waveform_id.id in amplitude_w_ids
+        ):  # only print mag if mag, resp. amplitude exists
+            new_text = (
+                "Dist.: {:.1f} m".format(event.origins[0].arrivals[index].distance)
+                + "\n"
+                + "SNR: {:.1f}".format(event.amplitudes[count].snr)
+                + "\n"
+                + "PA: {:.3f} corr".format(event.amplitudes[count].generic_amplitude)
+                + "\n"
+                + "$M_A$ sta.: {:.2f}".format(event.station_magnitudes[count].mag)
+            )
+            x_swave = (
+                (
+                    event.amplitudes[count].time_window.reference
+                    + event.amplitudes[count].time_window.end
+                )
+                - stream[0].stats.starttime
+            ) * 1000
             # theoretical S-wave arrival
-            figure.axes[index].scatter(x_swave, y_max, marker='v', color='black', zorder=10,
-                                       alpha=.5, label='end P-window')
+            figure.axes[index].scatter(
+                x_swave,
+                y_max,
+                marker="v",
+                color="black",
+                zorder=10,
+                alpha=0.5,
+                label="end P-window",
+            )
             count += 1
         else:
-            new_text = "Dist.: {:.1f} m".format(event.origins[0].arrivals[index].distance) + "\n" + \
-                       "used for location but no magnitude computed"
+            new_text = (
+                "Dist.: {:.1f} m".format(event.origins[0].arrivals[index].distance)
+                + "\n"
+                + "used for location but no magnitude computed"
+            )
 
         figure.axes[index].texts[0].set_text(new_text)
 
         if index == 0:
-            figure.axes[index].legend(loc='lower left')
-            figure.axes[index].legend(loc='lower left', ncol=2)
-            figure.axes[index + len(event.picks)].legend(loc='lower left', ncol=2)
+            figure.axes[index].legend(loc="lower left")
+            figure.axes[index].legend(loc="lower left", ncol=2)
+            figure.axes[index + len(event.picks)].legend(loc="lower left", ncol=2)
         else:
             continue
 

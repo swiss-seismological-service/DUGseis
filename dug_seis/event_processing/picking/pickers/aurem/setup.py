@@ -7,9 +7,11 @@ with open("requirements.txt") as f:
     required_list = f.read().splitlines()
 
 
-cmodule = Extension('aurem/src/aurem_clib',
-                    sources=['aurem/src/aurem_clib.c'],
-                    extra_compile_args=["-O3"])
+cmodule = Extension(
+    "aurem/src/aurem_clib",
+    sources=["aurem/src/aurem_clib.c"],
+    extra_compile_args=["-O3"],
+)
 
 setup(
     name="aurem",
@@ -20,10 +22,10 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     # url="https://github.com/billy4all/quake",
-    python_requires='>=3.6',
+    python_requires=">=3.6",
     install_requires=required_list,
     packages=find_packages(),
-    package_data={"aurem": ['src/*.c']},
+    package_data={"aurem": ["src/*.c"]},
     include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -31,7 +33,7 @@ setup(
         "Operating System :: Unix",
         "Intended Audience :: Science/Research",
     ],
-    ext_modules=[cmodule]
+    ext_modules=[cmodule],
 )
 
 

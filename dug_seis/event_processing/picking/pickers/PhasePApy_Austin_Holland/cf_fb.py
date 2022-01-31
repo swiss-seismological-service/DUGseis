@@ -41,7 +41,7 @@ class Ratio:
         BF = np.zeros(shape=(n_bands, LEN))
 
         for j in range(n_bands):
-            octave_high = (self.freqmin + self.freqmin * 2.0) / 2.0 * (2 ** j)
+            octave_high = (self.freqmin + self.freqmin * 2.0) / 2.0 * (2**j)
             octave_low = octave_high / 2.0
             BF[j] = bandpass(
                 self.tr.data,

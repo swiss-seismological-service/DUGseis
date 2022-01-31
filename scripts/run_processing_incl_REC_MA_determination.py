@@ -18,11 +18,15 @@ from dug_seis.event_processing.picking.dug_picker import dug_picker
 from dug_seis.event_processing.location.locate_homogeneous import (
     locate_in_homogeneous_background_medium,
 )
-from dug_seis.event_processing.magnitudes.amplitude_based_magnitudes import amplitude_based_relative_magnitude
-from dug_seis.plotting.plotting import plot_time_waveform,\
-                                        plot_time_characteristic_function,\
-                                        plot_waveform_characteristic_function,\
-                                        plot_waveform_characteristic_function_magnitude
+from dug_seis.event_processing.magnitudes.amplitude_based_magnitudes import (
+    amplitude_based_relative_magnitude,
+)
+from dug_seis.plotting.plotting import (
+    plot_time_waveform,
+    plot_time_characteristic_function,
+    plot_waveform_characteristic_function,
+    plot_waveform_characteristic_function_magnitude,
+)
 from obspy.core.event import Magnitude
 
 
@@ -55,7 +59,8 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
             "XB.04.01.001",
             "XB.04.02.001",
             "XB.03.12.001",
-            "XB.03.15.001"],
+            "XB.03.15.001",
+        ],
         start_time=interval_start,
         end_time=interval_end,
     )
@@ -108,7 +113,8 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
                 "XB.04.01.001",
                 "XB.04.02.001",
                 "XB.03.12.001",
-                "XB.03.15.001"],
+                "XB.03.15.001",
+            ],
             start_time=event_candidate["time"] - 5e-3,
             end_time=event_candidate["time"] + 35e-3,
         )
@@ -147,7 +153,9 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
         win_post = 0.0025
         for index, pick in enumerate(picks):
             trace_1 = st_event_copy.select(id=pick.waveform_id.id)[0]
-            trace_1 = trace_1.trim(starttime=pick.time - win_pre, endtime=pick.time + win_post)
+            trace_1 = trace_1.trim(
+                starttime=pick.time - win_pre, endtime=pick.time + win_post
+            )
 
             recobj = REC(trace_1)
             recobj.work()
@@ -163,14 +171,17 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
             coordinates=project.cartesian_coordinates,
             velocity=5400.0,
             damping=0.01,
-            local_to_global_coordinates=project.local_to_global_coordinates)
+            local_to_global_coordinates=project.local_to_global_coordinates,
+        )
 
         # get magnitude
         event = amplitude_based_relative_magnitude(st_event, event)
 
         # plot magnitude figure if magnitude computed
         if event.magnitudes:
-            fig = plot_waveform_characteristic_function_magnitude(st_event, st_window, lt_window, tr_on, tr_off, event)
+            fig = plot_waveform_characteristic_function_magnitude(
+                st_event, st_window, lt_window, tr_on, tr_off, event
+            )
             fig.set_size_inches(11.69, 8.27)
             fig.show()
 
