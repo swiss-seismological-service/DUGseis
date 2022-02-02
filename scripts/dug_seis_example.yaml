@@ -1,5 +1,5 @@
 # File format version number.
-version: 13
+version: 14
 
 # Meta information. Does not influence any functionality.
 meta:
@@ -85,13 +85,22 @@ graphical_interface:
   # Optional: Default arguments for the location algorithm used in the
   # relocation part of the graphical interface.
   location_algorithm_default_args:
-    velocity: 4866.0
+    velocity: 
+      P: 4866.0
+      S: 3500.0
     damping: 0.01
     use_anisotropy: true
-    azi: 310.0
-    inc: 28.6
-    delta: 0.071
-    epsilon: 0.067
+    anisotropy_parameters:
+      P:
+        azi: 310.0
+        inc: 28.6
+        delta: 0.071
+        epsilon: 0.067
+      S:
+        azi: 310.0
+        inc: 28.6
+        delta: 0.071
+        epsilon: 0.067
 
 # Available filters - either in the GUI or for any automatic picking
 # algorithms. The filter will be applied and the corresponding processing

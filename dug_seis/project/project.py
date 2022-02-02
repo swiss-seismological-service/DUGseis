@@ -92,7 +92,7 @@ logger = logging.getLogger(__name__)
 _CONFIG_FILE_SCHEMA = schema.Schema(
     {
         # Version number must be this.
-        "version": 13,
+        "version": 14,
         "meta": {
             "project_name": str,
             schema.Optional("project_location"): str,
@@ -166,24 +166,81 @@ _CONFIG_FILE_SCHEMA = schema.Schema(
             },
             schema.Optional(
                 "location_algorithm_default_args",
-                # A bit awkward here with the double default but seems to do the trick.
+                # A bit awkward here with the triple defaults but seems to do the trick.
+                # Would be much easier if this here is ever resolved:
+                # https://github.com/keleshev/schema/issues/203
                 default={
-                    "velocity": 4866.0,
+                    "velocity": {"P": 4866.0, "S": 3200.0},
                     "damping": 0.01,
                     "use_anisotropy": False,
-                    "azi": 310.0,
-                    "inc": 28.6,
-                    "delta": 0.071,
-                    "epsilon": 0.067,
+                    "anisotropy_parameters": {
+                        "P": {
+                            "azi": 310.0,
+                            "inc": 28.6,
+                            "delta": 0.071,
+                            "epsilon": 0.067,
+                        },
+                        "S": {
+                            "azi": 310.0,
+                            "inc": 28.6,
+                            "delta": 0.071,
+                            "epsilon": 0.067,
+                        },
+                    },
                 },
             ): {
-                schema.Optional("velocity", default=4866.0): float,
+                schema.Optional("velocity", default={"P": 4866.0, "S": 3200.0}): {
+                    schema.Optional("P", default=4866.0): float,
+                    schema.Optional("S", default=3200.0): float,
+                },
                 schema.Optional("damping", default=0.01): float,
                 schema.Optional("use_anisotropy", default=False): bool,
-                schema.Optional("azi", default=310.0): float,
-                schema.Optional("inc", default=28.6): float,
-                schema.Optional("delta", default=0.071): float,
-                schema.Optional("epsilon", default=0.067): float,
+                schema.Optional(
+                    "anisotropy_parameters",
+                    default={
+                        "P": {
+                            "azi": 310.0,
+                            "inc": 28.6,
+                            "delta": 0.071,
+                            "epsilon": 0.067,
+                        },
+                        "S": {
+                            "azi": 310.0,
+                            "inc": 28.6,
+                            "delta": 0.071,
+                            "epsilon": 0.067,
+                        },
+                    },
+                ): {
+                    schema.Optional(
+                        "P",
+                        default={
+                            "azi": 310.0,
+                            "inc": 28.6,
+                            "delta": 0.071,
+                            "epsilon": 0.067,
+                        },
+                    ): {
+                        schema.Optional("azi", default=310.0): float,
+                        schema.Optional("inc", default=28.6): float,
+                        schema.Optional("delta", default=0.071): float,
+                        schema.Optional("epsilon", default=0.067): float,
+                    },
+                    schema.Optional(
+                        "S",
+                        default={
+                            "azi": 310.0,
+                            "inc": 28.6,
+                            "delta": 0.071,
+                            "epsilon": 0.067,
+                        },
+                    ): {
+                        schema.Optional("azi", default=310.0): float,
+                        schema.Optional("inc", default=28.6): float,
+                        schema.Optional("delta", default=0.071): float,
+                        schema.Optional("epsilon", default=0.067): float,
+                    },
+                },
             },
         },
         "filters": [
