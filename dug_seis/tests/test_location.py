@@ -250,6 +250,10 @@ def test_locate_in_homogeneous_isotropic_medium(
     ],
     [
         (0.0, 1e-3, 1e-6, 0.7, {"P": 3500.0, "S": 2500.0}, None, "P_3500__S_2500"),
+        (0.00001, 7e-3, 7e-6, 0.7, {"P": 3500.0, "S": 2500.0}, None, "P_3500__S_2500"),
+        (0.0001, 7e-2, 6e-5, 0.7, {"P": 3500.0, "S": 2500.0}, None, "P_3500__S_2500"),
+        (0.001, 0.5, 6e-4, 0.7, {"P": 3500.0, "S": 2500.0}, None, "P_3500__S_2500"),
+        (0.002, 1.0, 2e-3, 0.7, {"P": 3500.0, "S": 2500.0}, None, "P_3500__S_2500"),
     ],
 )
 def test_joint_P_S_locate_in_homogeneous_isotropic_medium(
@@ -300,7 +304,7 @@ def test_joint_P_S_locate_in_homogeneous_isotropic_medium(
             tt = distance / velocity[phase]
             # Add some noise if necessary.
             if noise_level:
-                tt += random.random() * (noise_level * tt)
+                tt += random.random() * noise_level
 
             net, sta, loc, cha = channel_id.split(".")
             all_picks.append(
@@ -351,7 +355,11 @@ def test_joint_P_S_locate_in_homogeneous_isotropic_medium(
     dist_p = dist_error(event_p)
     dist_s = dist_error(event_s)
     dist_p_s = dist_error(event_p_s)
-    assert dist_p > dist_s > dist_p_s
+
+    # Test separately that both individual inaccuracies are smaller than for
+    # the joint inversion.
+    assert dist_p > dist_p_s
+    assert dist_s > dist_p_s
 
     assert len(event_p.picks) == 16
     assert len(event_s.picks) == 16
@@ -376,9 +384,7 @@ def test_joint_P_S_locate_in_homogeneous_isotropic_medium(
         assert o.epicenter_fixed is False
         assert o.depth_type == "from location"
         assert o.method_id.id == "method/travel_time/homogeneous_model"
-        assert o.resource_id.id.startswith(
-            "origin/travel_time/homogeneous_model/"
-        )
+        assert o.resource_id.id.startswith("origin/travel_time/homogeneous_model/")
 
         assert len(event.picks) == len(o.arrivals)
 
