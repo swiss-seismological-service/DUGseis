@@ -27,21 +27,30 @@ from dug_seis.event_processing.location.locate_homogeneous import (
 
 
 @pytest.mark.parametrize(
-    "noise_level, location_tolerance, origin_time_tolerance, damping, velocity, anisotropic_params",
     [
-        (0.0, 1e-3, 1e-6, 0.7, 3500.0, None),
-        (0.0001, 7e-3, 5e-6, 0.7, 3500.0, None),
-        (0.001, 7e-2, 5e-5, 0.7, 3500.0, None),
-        (0.01, 0.2, 2e-4, 0.7, 3500.0, None),
-        (0.02, 0.4, 4e-4, 0.7, 3500.0, None),
+        "noise_level",
+        "location_tolerance",
+        "origin_time_tolerance",
+        "damping",
+        "phase",
+        "velocity",
+        "anisotropic_params",
+    ],
+    [
+        (0.0, 1e-3, 1e-6, 0.7, "P", 3500.0, None),
+        (0.0001, 7e-3, 5e-6, 0.7, "P", 3500.0, None),
+        (0.001, 7e-2, 5e-5, 0.7, "P", 3500.0, None),
+        (0.01, 0.2, 2e-4, 0.7, "P", 3500.0, None),
+        (0.02, 0.4, 4e-4, 0.7, "P", 3500.0, None),
         # More damping => Less accurate result in this synthetic case.
-        (0.02, 0.8, 4e-4, 2.0, 3500.0, None),
+        (0.02, 0.8, 4e-4, 2.0, "P", 3500.0, None),
         # Model isotropy with the anisotropic approach. Thus very small error.
         (
             0.0,
             1e-3,
             1e-6,
             0.7,
+            "P",
             3500.0,
             {"inc": 0.0, "azi": 0.0, "delta": 0.0, "epsilon": 0.0},
         ),
@@ -52,6 +61,7 @@ from dug_seis.event_processing.location.locate_homogeneous import (
             0.05,
             2e-4,
             0.7,
+            "P",
             3500.0,
             {"inc": 0.0, "azi": 0.0, "delta": 0.01, "epsilon": 0.0},
         ),
@@ -60,16 +70,18 @@ from dug_seis.event_processing.location.locate_homogeneous import (
             0.1,
             3e-4,
             0.7,
+            "P",
             3500.0,
             {"inc": 0.0, "azi": 0.0, "delta": 0.0, "epsilon": 0.01},
         ),
         # Repeat the last five but use velocity dictionaries.
-        (0.02, 0.8, 4e-4, 2.0, {"P": 3500.0}, None),
+        (0.02, 0.8, 4e-4, 2.0, "P", {"P": 3500.0}, None),
         (
             0.0,
             1e-3,
             1e-6,
             0.7,
+            "P",
             {"P": 3500.0},
             {"P": {"inc": 0.0, "azi": 0.0, "delta": 0.0, "epsilon": 0.0}},
         ),
@@ -78,6 +90,7 @@ from dug_seis.event_processing.location.locate_homogeneous import (
             0.05,
             2e-4,
             0.7,
+            "P",
             {"P": 3500.0},
             {"P": {"inc": 0.0, "azi": 0.0, "delta": 0.01, "epsilon": 0.0}},
         ),
@@ -86,8 +99,20 @@ from dug_seis.event_processing.location.locate_homogeneous import (
             0.1,
             3e-4,
             0.7,
+            "P",
             {"P": 3500.0},
             {"P": {"inc": 0.0, "azi": 0.0, "delta": 0.0, "epsilon": 0.01}},
+        ),
+        # Try S velocities.
+        (0.02, 0.8, 4e-4, 2.0, "S", {"S": 3500.0}, None),
+        (
+            0.0,
+            1e-3,
+            1e-6,
+            0.7,
+            "S",
+            {"S": 2500.0},
+            {"S": {"inc": 0.0, "azi": 0.0, "delta": 0.0, "epsilon": 0.0}},
         ),
     ],
 )
@@ -96,6 +121,7 @@ def test_locate_in_homogeneous_isotropic_medium(
     location_tolerance,
     origin_time_tolerance,
     damping,
+    phase,
     velocity,
     anisotropic_params,
 ):
@@ -108,9 +134,9 @@ def test_locate_in_homogeneous_isotropic_medium(
     src_location = np.array([3.0, -7.0, 2.3])
 
     if isinstance(velocity, float):
-        vp = 3500.0
+        vel = 3500.0
     else:
-        vp = velocity["P"]
+        vel = velocity[phase]
 
     # Pretty good distribution of receivers.
     receivers = {
@@ -128,7 +154,7 @@ def test_locate_in_homogeneous_isotropic_medium(
     picks = []
     for channel_id, coordinates in receivers.items():
         distance = np.linalg.norm(src_location - np.array(coordinates))
-        tt = distance / vp
+        tt = distance / vel
         # Add some noise if necessary.
         if noise_level:
             tt += random.random() * (noise_level * tt)
@@ -138,7 +164,7 @@ def test_locate_in_homogeneous_isotropic_medium(
             Pick(
                 time=origin_time + tt,
                 waveform_id=WaveformStreamID(net, sta, loc, cha),
-                phase_hint="P",
+                phase_hint=phase
             )
         )
 
@@ -178,11 +204,11 @@ def test_locate_in_homogeneous_isotropic_medium(
     assert len(o.arrivals) == 8
 
     iso = "anisotropic" if anisotropic_params else "isotropic"
-    earth_model_id_str = f"earth_model/homogeneous/{iso}/velocity=P_3500"
+    earth_model_id_str = f"earth_model/homogeneous/{iso}/velocity={phase}_{int(vel)}"
 
     for pick, arrival in zip(picks, o.arrivals):
         assert arrival.pick_id == pick.resource_id
         # Extremely unlikely with floating point math and bounded accuracy.
         assert arrival.time_residual != 0.0
-        assert arrival.phase == "P"
+        assert arrival.phase == phase
         assert arrival.earth_model_id.id == earth_model_id_str

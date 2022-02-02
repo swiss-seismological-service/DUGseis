@@ -280,7 +280,7 @@ def locate_in_homogeneous_background_medium(
                 resource_id=f"arrival/{_i}/{o.resource_id.id}",
                 pick_id=pick.resource_id,
                 time_residual=res[_i] / 1000,
-                phase="P",
+                phase=pick.phase_hint,
                 earth_model_id=earth_model_id,
                 distance=dists[_i],
             )
