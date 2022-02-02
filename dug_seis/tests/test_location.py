@@ -27,25 +27,77 @@ from dug_seis.event_processing.location.locate_homogeneous import (
 
 
 @pytest.mark.parametrize(
-    "noise_level, location_tolerance, origin_time_tolerance, damping, anisotropic_params",
+    "noise_level, location_tolerance, origin_time_tolerance, damping, velocity, anisotropic_params",
     [
-        (0.0, 1e-3, 1e-6, 0.7, None),
-        (0.0001, 7e-3, 5e-6, 0.7, None),
-        (0.001, 7e-2, 5e-5, 0.7, None),
-        (0.01, 0.2, 2e-4, 0.7, None),
-        (0.02, 0.4, 4e-4, 0.7, None),
+        (0.0, 1e-3, 1e-6, 0.7, 3500.0, None),
+        (0.0001, 7e-3, 5e-6, 0.7, 3500.0, None),
+        (0.001, 7e-2, 5e-5, 0.7, 3500.0, None),
+        (0.01, 0.2, 2e-4, 0.7, 3500.0, None),
+        (0.02, 0.4, 4e-4, 0.7, 3500.0, None),
         # More damping => Less accurate result in this synthetic case.
-        (0.02, 0.8, 4e-4, 2.0, None),
+        (0.02, 0.8, 4e-4, 2.0, 3500.0, None),
         # Model isotropy with the anisotropic approach. Thus very small error.
-        (0.0, 1e-3, 1e-6, 0.7, {"inc": 0.0, "azi": 0.0, "delta": 0.0, "epsilon": 0.0}),
+        (
+            0.0,
+            1e-3,
+            1e-6,
+            0.7,
+            3500.0,
+            {"inc": 0.0, "azi": 0.0, "delta": 0.0, "epsilon": 0.0},
+        ),
         # Add some actual anisotropy => larger error because the synthetic data
         # is modelled wrongly.
-        (0.0, 0.05, 2e-4, 0.7, {"inc": 0.0, "azi": 0.0, "delta": 0.01, "epsilon": 0.0}),
-        (0.0, 0.1, 3e-4, 0.7, {"inc": 0.0, "azi": 0.0, "delta": 0.0, "epsilon": 0.01}),
+        (
+            0.0,
+            0.05,
+            2e-4,
+            0.7,
+            3500.0,
+            {"inc": 0.0, "azi": 0.0, "delta": 0.01, "epsilon": 0.0},
+        ),
+        (
+            0.0,
+            0.1,
+            3e-4,
+            0.7,
+            3500.0,
+            {"inc": 0.0, "azi": 0.0, "delta": 0.0, "epsilon": 0.01},
+        ),
+        # Repeat the last five but use velocity dictionaries.
+        (0.02, 0.8, 4e-4, 2.0, {"P": 3500.0}, None),
+        (
+            0.0,
+            1e-3,
+            1e-6,
+            0.7,
+            {"P": 3500.0},
+            {"P": {"inc": 0.0, "azi": 0.0, "delta": 0.0, "epsilon": 0.0}},
+        ),
+        (
+            0.0,
+            0.05,
+            2e-4,
+            0.7,
+            {"P": 3500.0},
+            {"P": {"inc": 0.0, "azi": 0.0, "delta": 0.01, "epsilon": 0.0}},
+        ),
+        (
+            0.0,
+            0.1,
+            3e-4,
+            0.7,
+            {"P": 3500.0},
+            {"P": {"inc": 0.0, "azi": 0.0, "delta": 0.0, "epsilon": 0.01}},
+        ),
     ],
 )
 def test_locate_in_homogeneous_isotropic_medium(
-    noise_level, location_tolerance, origin_time_tolerance, damping, anisotropic_params
+    noise_level,
+    location_tolerance,
+    origin_time_tolerance,
+    damping,
+    velocity,
+    anisotropic_params,
 ):
     """
     Simple tests to make sure the algorithm does what is says on the tin.
@@ -55,7 +107,10 @@ def test_locate_in_homogeneous_isotropic_medium(
     origin_time = obspy.UTCDateTime(2021, 1, 2, 3, 4, 5, 123456)
     src_location = np.array([3.0, -7.0, 2.3])
 
-    vp = 3500.0
+    if isinstance(velocity, float):
+        vp = 3500.0
+    else:
+        vp = velocity["P"]
 
     # Pretty good distribution of receivers.
     receivers = {
@@ -91,7 +146,7 @@ def test_locate_in_homogeneous_isotropic_medium(
     event = locate_in_homogeneous_background_medium(
         picks=picks,
         coordinates=receivers,
-        velocity=vp,
+        velocity=velocity,
         damping=damping,
         # Identity mapping - thus latitude/longitude/depth == x/y/z for testing
         # purposes.
