@@ -106,14 +106,14 @@ def locate_in_homogeneous_background_medium(
         )
 
     velocity_phases = set(velocity.keys())
-    if all_phases != velocity_phases:
+    if not all_phases.issubset(velocity_phases):
         raise ValueError(
             f"Must specify one velocity per phase. Phases available in picks: {all_phases}. "
             f"Velocities are defined for phases: {velocity_phases}"
         )
     if anisotropic_params:
         anisotropy_phases = set(anisotropic_params.keys())
-        if all_phases != anisotropy_phases:
+        if not all_phases.issubset(anisotropy_phases):
             raise ValueError(
                 "Must specify one set of anisotropic parameters per phase. Phases "
                 f"available in picks: {all_phases}. "
@@ -257,11 +257,11 @@ def locate_in_homogeneous_background_medium(
     earth_model_id = ResourceIdentifier(
         id=f"earth_model/homogeneous/{s}/velocity={vel_str}"
     )
-    method_id = "method/p_wave_travel_time/homogeneous_model"
+    method_id = "method/travel_time/homogeneous_model"
 
     # Create origin.
     o = Origin(
-        resource_id=f"origin/p_wave_travel_time/homogeneous_model/{uuid.uuid4()}",
+        resource_id=f"origin/travel_time/homogeneous_model/{uuid.uuid4()}",
         time=origin_time,
         longitude=longitude,
         latitude=latitude,
