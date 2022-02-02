@@ -382,6 +382,16 @@ class DUGSeisProject:
             with open(config, "r") as fh:
                 config = yaml.load(fh, Loader=yaml.SafeLoader)
 
+        # Manually check the version number to be able to raise a more
+        # descriptive error
+        expected_version = _CONFIG_FILE_SCHEMA.schema["version"]
+        actual_version = config.get("version", None)
+        if expected_version != actual_version:
+            raise ValueError(
+                f"This DUGSeis requires a config file of version '{expected_version}'. "
+                f"The given file has a version number of '{actual_version}'."
+            )
+
         # First validate using the config schema.
         v_config = _CONFIG_FILE_SCHEMA.validate(config)
 
