@@ -67,19 +67,6 @@ def locate_in_homogeneous_background_medium(
         A complete event with a location origin. Will be returned regardless of
         how well the location works so a subsequent QC check is advisable.
     """
-    # QC on the anisotropic parameters if given.
-    if anisotropic_params and set(anisotropic_params.keys()) != {
-        "inc",
-        "azi",
-        "delta",
-        "epsilon",
-    }:
-        raise ValueError(
-            "The 'anisotropic_params' dictionary, if given, must contain "
-            "these keys: inc, azi, delta, epsilon. It contains: "
-            f"{list(anisotropic_params.keys())}"
-        )
-
     # Set of all phases available in the picks.
     all_phases = set()
     # Collect all picks.
@@ -124,8 +111,31 @@ def locate_in_homogeneous_background_medium(
             f"Must specify one velocity per phase. Phases available in picks: {all_phases}. "
             f"Velocities are defined for phases: {velocity_phases}"
         )
+    if anisotropic_params:
+        anisotropy_phases = set(anisotropic_params.keys())
+        if all_phases != anisotropy_phases:
+            raise ValueError(
+                "Must specify one set of anisotropic parameters per phase. Phases "
+                f"available in picks: {all_phases}. "
+                f"Anisotropy is defined for phases: {anisotropy_phases}"
+            )
 
     # XXX: Add the same error handling to the anisotropic parameters.
+
+    # QC on the anisotropic parameters if given.
+    if anisotropic_params:
+        for phase, values in anisotropic_params.items():
+            if set(values.keys()) != {
+                "inc",
+                "azi",
+                "delta",
+                "epsilon",
+            }:
+                raise ValueError(
+                    "The 'anisotropic_params' dictionary, if given, must contain "
+                    f"these keys: inc, azi, delta, epsilon. For '{phase}' contains: "
+                    f"{list(anisotropic_params.keys())}"
+                )
 
     starttime = min([p.time for p in event_picks])
 
