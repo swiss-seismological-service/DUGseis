@@ -33,7 +33,7 @@ def test_config_validation(tmp_path):
     (d / "cache_folder").mkdir(parents=True)
 
     config = {
-        "version": 13,
+        "version": 14,
         "meta": {
             "project_name": "Example",
             "project_location": "Hello",
