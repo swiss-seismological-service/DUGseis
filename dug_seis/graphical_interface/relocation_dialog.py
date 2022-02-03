@@ -74,7 +74,9 @@ class RelocationDialog(QtWidgets.QDialog):
             # Only keep P and S picks.
             if pick.phase_hint not in ["P", "S"]:
                 continue
-            picks_by_channel_and_phase[(pick.waveform_id.id, pick.phase_hint)].append(pick)
+            picks_by_channel_and_phase[(pick.waveform_id.id, pick.phase_hint)].append(
+                pick
+            )
 
         selected_picks = []
 
