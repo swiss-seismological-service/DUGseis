@@ -348,7 +348,7 @@ def test_joint_P_S_locate_in_homogeneous_isotropic_medium(
     )
 
     # The same holds true for the location.
-    dist_error = lambda e: np.linalg.norm(
+    dist_error = lambda e: np.linalg.norm(  # NOQA
         np.array([e.origins[0].latitude, e.origins[0].longitude, e.origins[0].depth])
         - src_location
     )
