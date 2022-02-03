@@ -97,10 +97,10 @@ graphical_interface:
         delta: 0.071
         epsilon: 0.067
       S:
-        azi: 310.0
-        inc: 28.6
-        delta: 0.071
-        epsilon: 0.067
+        azi: 311.0
+        inc: 29.6
+        delta: 0.081
+        epsilon: 0.077
 
 # Available filters - either in the GUI or for any automatic picking
 # algorithms. The filter will be applied and the corresponding processing
