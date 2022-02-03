@@ -49,25 +49,37 @@ class RelocationDialog(QtWidgets.QDialog):
         c = self.project.config["graphical_interface"][
             "location_algorithm_default_args"
         ]
-        self.ui.velocity_spin_box.setValue(c["velocity"])
+
+        # Generic parameters.
         self.ui.damping_spin_box.setValue(c["damping"])
         self.ui.use_anisotropy_check_box.setChecked(c["use_anisotropy"])
-        self.ui.azi_spin_box.setValue(c["azi"])
-        self.ui.inc_spin_box.setValue(c["inc"])
-        self.ui.delta_spin_box.setValue(c["delta"])
-        self.ui.epsilon_spin_box.setValue(c["epsilon"])
 
-        # Figure out the initial picks to use. Filter by P pick and also filter
-        # by channel id.
-        picks_by_channel = collections.defaultdict(list)
+        # P-wave parameters.
+        self.ui.p_velocity_spin_box.setValue(c["velocity"]["P"])
+        self.ui.p_azi_spin_box.setValue(c["anisotropy_parameters"]["P"]["azi"])
+        self.ui.p_inc_spin_box.setValue(c["anisotropy_parameters"]["P"]["inc"])
+        self.ui.p_delta_spin_box.setValue(c["anisotropy_parameters"]["P"]["delta"])
+        self.ui.p_epsilon_spin_box.setValue(c["anisotropy_parameters"]["P"]["epsilon"])
+
+        # S-wave parameters.
+        self.ui.s_velocity_spin_box.setValue(c["velocity"]["S"])
+        self.ui.s_azi_spin_box.setValue(c["anisotropy_parameters"]["S"]["azi"])
+        self.ui.s_inc_spin_box.setValue(c["anisotropy_parameters"]["S"]["inc"])
+        self.ui.s_delta_spin_box.setValue(c["anisotropy_parameters"]["S"]["delta"])
+        self.ui.s_epsilon_spin_box.setValue(c["anisotropy_parameters"]["S"]["epsilon"])
+
+        # Only keep P and S picks.
+        picks_by_channel_and_phase = collections.defaultdict(list)
         for pick in self.event.picks:
-            if pick.phase_hint and pick.phase_hint.lower() != "p":
+            # Only keep P and S picks.
+            if pick.phase_hint not in ["P", "S"]:
                 continue
-            picks_by_channel[pick.waveform_id.id].append(pick)
+            picks_by_channel_and_phase[(pick.waveform_id.id, pick.phase_hint)].append(pick)
 
         selected_picks = []
 
-        for key, picks in picks_by_channel.items():
+        # Prefer manual over automatic picks.
+        for picks in picks_by_channel_and_phase.values():
             if len(picks) == 1:
                 selected_picks.append(picks[0])
                 continue
@@ -189,18 +201,31 @@ class RelocationDialog(QtWidgets.QDialog):
 
         if self.ui.use_anisotropy_check_box.isChecked():
             anisotropic_params = {
-                "azi": self.ui.azi_spin_box.value(),
-                "inc": self.ui.inc_spin_box.value(),
-                "delta": self.ui.delta_spin_box.value(),
-                "epsilon": self.ui.epsilon_spin_box.value(),
+                "P": {
+                    "azi": self.ui.p_azi_spin_box.value(),
+                    "inc": self.ui.p_inc_spin_box.value(),
+                    "delta": self.ui.p_delta_spin_box.value(),
+                    "epsilon": self.ui.p_epsilon_spin_box.value(),
+                },
+                "S": {
+                    "azi": self.ui.s_azi_spin_box.value(),
+                    "inc": self.ui.s_inc_spin_box.value(),
+                    "delta": self.ui.s_delta_spin_box.value(),
+                    "epsilon": self.ui.s_epsilon_spin_box.value(),
+                },
             }
         else:
             anisotropic_params = {}
 
+        velocity = {
+            "P": self.ui.p_velocity_spin_box.value(),
+            "S": self.ui.s_velocity_spin_box.value(),
+        }
+
         event = locate_in_homogeneous_background_medium(
             picks=picks,
             coordinates=self.project.cartesian_coordinates,
-            velocity=self.ui.velocity_spin_box.value(),
+            velocity=velocity,
             damping=self.ui.damping_spin_box.value(),
             local_to_global_coordinates=self.project.local_to_global_coordinates,
             anisotropic_params=anisotropic_params,
