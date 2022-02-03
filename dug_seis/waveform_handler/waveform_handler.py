@@ -384,7 +384,6 @@ class WaveformHandler:
             if not m:
                 continue
             g = m.groups()
-            s = f.stat()
 
             # Filter the times.
             starttime = obspy.UTCDateTime(*[int(i) for i in g[:7]])
@@ -392,6 +391,7 @@ class WaveformHandler:
             if starttime > self._end_time or endtime < self._start_time:
                 continue
 
+            s = f.stat()
             self._files[f] = {
                 "starttime": starttime,
                 "endtime": endtime,
