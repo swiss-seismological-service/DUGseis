@@ -43,7 +43,10 @@ def amplitude_based_relative_magnitude(st_event, event):
     filter_zerophase = 'false'
     signal_copy = st_event.copy()
     noise_copy = st_event.copy()
-    conversion_factor_counts_mV = 0.003125  # assuming 64'000 (not 2**16 = 65536) counts
+    gainLogAE = 100  # 10dB + 30dB
+    gainAE = 1. / gainLogAE
+    Count2VoltAE = 10. / 32000  # 10V on 32000 samples
+    conversion_factor_counts_mV = gainAE * Count2VoltAE  # assuming 64'000 (not 2**16 = 65536) counts
     # resolution per +/-10V (direct communication by GMuG) as well as 30dB pre-amplification
     # and 10 dB amplification from the supply/filter unit
     p_amp = []
@@ -51,9 +54,19 @@ def amplitude_based_relative_magnitude(st_event, event):
     t_window = []
     distances = []
     count = 0
-    for index, pick in enumerate(event.picks):
-        dist = event.origins[0].arrivals[index].distance  # get distances
-        s_arrival = event.preferred_origin().time + (dist/s_wave_velocity)  # calc. theoretical s-wave arrival
+    tmpPicks = event.picks
+    if len(tmpPicks)>len(event.preferred_origin().arrivals):
+        idx = [i for i,x in enumerate(tmpPicks) if x.evaluation_mode=='manual']
+        PicksManual = [tmpPicks[x].waveform_id for x in idx]
+        idx2 = [i for i,x in enumerate(tmpPicks) if x.waveform_id in PicksManual and x.evaluation_mode=='automatic']
+        PickDouble = [tmpPicks[x].waveform_id for x in idx2]
+        Picks = [x for x in tmpPicks if x.waveform_id not in PickDouble or x.evaluation_mode=='manual']
+    else:
+        Picks = tmpPicks
+
+    for index, pick in enumerate(Picks):
+        dist = event.preferred_origin().arrivals[index].distance  # get distances
+        s_arrival = event.preferred_origin().time + (dist / s_wave_velocity)  # calc. theoretical s-wave arrival
         delta_p_s = s_arrival - pick.time  # time between s-arrival and p-pick
         signal_window_start_time = pick.time - delta_p_s
         signal_window_end_time = pick.time + delta_p_s
@@ -93,8 +106,6 @@ def amplitude_based_relative_magnitude(st_event, event):
         noise_95pers = np.percentile(np.abs(noise.data), 95)  # take 95 % percentile to omit outliers
         n_amp.append(noise_95pers * conversion_factor_counts_mV)
 
-    # And add amplitude to the respective event
-    for index, pick in enumerate(event.picks):
         event.amplitudes.append(
             Amplitude(resource_id=f"amplitude/p_wave/{uuid.uuid4()}",
                       generic_amplitude=p_amp[count],
@@ -107,17 +118,16 @@ def amplitude_based_relative_magnitude(st_event, event):
                                                    channel_code=st_event[index].stats.channel),
                       time_window=TimeWindow(begin=t_window[count].begin, end=t_window[count].end,
                                              reference=t_window[count].reference)))
-        count += 1
-    if len(event.amplitudes) < 1:  # if les than two amplitudes are assigned return from the definition
+
+    if not event.amplitudes:  # if no amplitudes are assigned return from the definition
         delattr(event, 'amplitudes')
         return event
 
     # Magnitude determination per station
     f_0 = (filter_freq_max - filter_freq_min) / 2 + filter_freq_min  # dominant frequency [Hz]
     Q = 76.0  # Quality factor [] introduced by Hansruedi Maurer (Email 29.07.2021)
-    V_P = 5400.0  # P-wave velocity [m/s]
+    V_P = 5100.0  # P-wave velocity [m/s]
     r_0 = 10.0  # reference distance [m]
-    Grimsel_factor = 4.0  # determined Grimsel factor
 
     s_m = []
     Mr_station = []
@@ -134,7 +144,7 @@ def amplitude_based_relative_magnitude(st_event, event):
         event.station_magnitudes.append(
             StationMagnitude(resource_id=f"station_magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
                              origin_id=event.preferred_origin_id.id,
-                             mag=Mr_station[index] - Grimsel_factor,
+                             mag=0.52*Mr_station[index] - 4.46,
                              station_magnitude_type='Mb',
                              amplitude_id=event.amplitudes[index].resource_id))
         # store station magnitude contribution
@@ -142,8 +152,9 @@ def amplitude_based_relative_magnitude(st_event, event):
             StationMagnitudeContribution(station_magnitude_id="smi:local/" + event.station_magnitudes[index].resource_id.id,
                                          weight=1/len(event.amplitudes)))
     Mr_station = np.array(Mr_station)
-    Mr_network = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))  # network magnitude
-    MA_network = Mr_network - Grimsel_factor  # correction with Grimsel adjustment factor
+    # Mr_network = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))  # network magnitude
+    Mr_network = np.sum(Mr_station) / len(Mr_station) # network magnitude
+    MA_network = 0.52*Mr_network-4.46  # temporary relation deduced from VALTER Stimulaiton1, using individual stations estimations
 
     # Create network magnitude and add station magnitude contribution
     m = Magnitude(resource_id=f"magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
@@ -160,3 +171,4 @@ def amplitude_based_relative_magnitude(st_event, event):
     # f"Network magnitude successfully computed: MA{MA_network:.2f}")
 
     return event
+
