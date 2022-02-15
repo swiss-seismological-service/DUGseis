@@ -535,6 +535,20 @@ class MainWindow(QtWidgets.QMainWindow):
             resource_id=self.event_summary[event_number - 1]["event_resource_id"]
         )
 
+        # If the event is the same, we want to retain any picks that are not yet
+        # saved to the database. This for example includes picks that have not
+        # been used in a relocation.
+        if (
+            self._state.get("current_event", None)
+            and self._state["current_event"].resource_id == event.resource_id
+        ):
+            existing_event = self._state["current_event"]
+            picks_in_new_event = set(p.resource_id for p in event.picks)
+            # Add the missing picks.
+            for p in existing_event.picks:
+                if p.resource_id not in picks_in_new_event:
+                    event.picks.append(p)
+
         self._state["current_event"] = event
         # Show the default origin.
         self._update_active_event_in_3d_plot()
