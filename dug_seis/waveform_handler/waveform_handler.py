@@ -544,7 +544,10 @@ class WaveformHandler:
         }
 
         if not files:
-            raise ValueError("Could not find data.")
+            raise ValueError(
+                f"Could not find data for channel: {channel_id}, "
+                f"start time: {start_time}, end time: {end_time}."
+            )
 
         st = obspy.Stream(
             traces=[
