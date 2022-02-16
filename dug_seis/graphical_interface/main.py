@@ -458,7 +458,7 @@ class MainWindow(QtWidgets.QMainWindow):
             x_range = (self.wh.starttime.timestamp, self.wh.endtime.timestamp)
             # else:
             #     x_range = (time_range[0], time_range[1])
-            plot.setXRange(*x_range)
+            plot.setXRange(*x_range, padding=0.0)
 
             plot.addItem(
                 WaveformPlotCurveItem(
@@ -479,7 +479,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if time_range is not None:
             for p in plot_list:
-                p.setXRange(*time_range)
+                p.setXRange(*time_range, padding=0.0)
 
         # XXX: There must be a better way to do this ...
         # The problem is that otherwise the
@@ -571,7 +571,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if self.plots:
             plot = next(iter(self.plots.values()))["plot_object"]
-            plot.setXRange((s - duration).timestamp, (e + duration).timestamp)
+            plot.setXRange((s - duration).timestamp, (e + duration).timestamp, padding=0.0)
 
             self._update_picks()
 
@@ -764,7 +764,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 "Possible 'zoom_type' values are: 'left', 'right', 'reset'."
             )
 
-        plot.setXRange(*new_view_range)
+        plot.setXRange(*new_view_range, padding=0.0)
 
     def _reload_data_after_waveform_data(self):
         """
@@ -786,7 +786,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._show_channels(channels=current_channels)
 
         plot = next(iter(self.plots.values()))["plot_object"]
-        plot.setXRange(*current_view_range)
+        plot.setXRange(*current_view_range, padding=0.0)
 
     def reload_data(self):
         """
