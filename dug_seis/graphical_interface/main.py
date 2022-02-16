@@ -497,6 +497,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self._update_picks()
         self._update_active_channels_in_3d_plot()
 
+        self.ui.plotWidget.setMinimumHeight(len(plot_list) * 100)
+
         # Force the recomputation of the internal size to workaround a bug in
         # pyqtgraph if the minimal size of the widget becomes larger than the
         # container and it does not properly update once it fits again.
