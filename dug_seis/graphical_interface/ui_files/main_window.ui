@@ -220,7 +220,7 @@
                    <x>0</x>
                    <y>0</y>
                    <width>951</width>
-                   <height>375</height>
+                   <height>393</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -593,7 +593,7 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_10">
+         <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="0,0,1">
           <item>
            <widget class="QGroupBox" name="groupBox_3">
             <property name="title">
@@ -690,89 +690,101 @@
             <property name="title">
              <string>Actions</string>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_4">
+            <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="1,1">
              <item>
-              <widget class="QComboBox" name="classification_combo_box"/>
+              <layout class="QVBoxLayout" name="verticalLayout_8">
+               <item>
+                <widget class="QComboBox" name="classification_combo_box"/>
+               </item>
+               <item>
+                <widget class="QPushButton" name="save_classification_button">
+                 <property name="text">
+                  <string>Save Classification</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="verticalSpacer_2">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="relocate_push_button">
+                 <property name="text">
+                  <string>Relocate Event</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="verticalSpacer_3">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="save_visible_data_button">
+                 <property name="toolTip">
+                  <string>Opens a dialogue box to save the visible data to disk in a selection of different file formats.</string>
+                 </property>
+                 <property name="text">
+                  <string>Save Visible Data</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="create_trace_plot_push_button">
+                 <property name="text">
+                  <string>Plot all Traces</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
-              <widget class="QPushButton" name="save_classification_button">
-               <property name="text">
-                <string>Save Classification</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="relocate_push_button">
-               <property name="text">
-                <string>Relocate Event</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_3">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="save_visible_data_button">
-               <property name="toolTip">
-                <string>Opens a dialogue box to save the visible data to disk in a selection of different file formats.</string>
-               </property>
-               <property name="text">
-                <string>Save Visible Data</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_5">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="reload_data_button">
-               <property name="text">
-                <string>Reload Data</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_8"/>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="reload_on_data_change_check_box">
-               <property name="text">
-                <string>Reload on Data Change</string>
-               </property>
-              </widget>
+              <layout class="QVBoxLayout" name="verticalLayout_4">
+               <item>
+                <spacer name="verticalSpacer_5">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="reload_data_button">
+                 <property name="text">
+                  <string>Reload Data</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="reload_on_data_change_check_box">
+                 <property name="text">
+                  <string>Reload on Data Change</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
             </layout>
            </widget>

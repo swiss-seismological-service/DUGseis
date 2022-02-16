@@ -1077,6 +1077,40 @@ class MainWindow(QtWidgets.QMainWindow):
         d.exec_()
 
     @QtCore.Slot()
+    def on_create_trace_plot_push_button_released(self):
+        import matplotlib.pyplot as plt  # NOQA
+
+        starttime = obspy.UTCDateTime(self._state["common_plot_starttime"])
+        endtime = obspy.UTCDateTime(self._state["common_plot_endtime"])
+
+        npts_per_channel = int(
+            round((endtime - starttime) / self.project.waveforms.dt + 1)
+        )
+        if npts_per_channel > 10000000:
+            mb = QtWidgets.QMessageBox(self)
+            mb.setWindowTitle(f"Requested {npts_per_channel} samples per channel.")
+            mb.setText(
+                "Please select less than 10M sample points per channel or consider using the DUGSeis API."
+            )
+            mb.exec()
+            return
+
+        # Get all the traces.
+        st = self.wh.get_waveforms(
+            channel_ids=self.wh.receivers, start_time=starttime, end_time=endtime
+        )
+
+        # Plot and show in extra window.
+        plt.close("all")
+        image_data = st.plot(format="png", size=(800, 100 * len(st)))
+        plt.close("all")
+
+        from .image_view import ImageView
+
+        d = ImageView(self, image_data=image_data)
+        d.exec_()
+
+    @QtCore.Slot()
     def on_save_picks_in_dummy_arrival_released(self):
         event = self._state.get("current_event", None)
         if not event or not event.picks:

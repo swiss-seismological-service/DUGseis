@@ -133,7 +133,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 951, 375))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 951, 393))
         self.verticalLayout_9 = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
         self.verticalLayout_9.setContentsMargins(0, 0, 0, 0)
@@ -399,36 +399,48 @@ class Ui_MainWindow(object):
 
         self.groupBox_4 = QGroupBox(self.waveform_tab)
         self.groupBox_4.setObjectName(u"groupBox_4")
-        self.verticalLayout_4 = QVBoxLayout(self.groupBox_4)
-        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.horizontalLayout_15 = QHBoxLayout(self.groupBox_4)
+        self.horizontalLayout_15.setObjectName(u"horizontalLayout_15")
+        self.verticalLayout_8 = QVBoxLayout()
+        self.verticalLayout_8.setObjectName(u"verticalLayout_8")
         self.classification_combo_box = QComboBox(self.groupBox_4)
         self.classification_combo_box.setObjectName(u"classification_combo_box")
 
-        self.verticalLayout_4.addWidget(self.classification_combo_box)
+        self.verticalLayout_8.addWidget(self.classification_combo_box)
 
         self.save_classification_button = QPushButton(self.groupBox_4)
         self.save_classification_button.setObjectName(u"save_classification_button")
 
-        self.verticalLayout_4.addWidget(self.save_classification_button)
+        self.verticalLayout_8.addWidget(self.save_classification_button)
 
         self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        self.verticalLayout_4.addItem(self.verticalSpacer_2)
+        self.verticalLayout_8.addItem(self.verticalSpacer_2)
 
         self.relocate_push_button = QPushButton(self.groupBox_4)
         self.relocate_push_button.setObjectName(u"relocate_push_button")
 
-        self.verticalLayout_4.addWidget(self.relocate_push_button)
+        self.verticalLayout_8.addWidget(self.relocate_push_button)
 
         self.verticalSpacer_3 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        self.verticalLayout_4.addItem(self.verticalSpacer_3)
+        self.verticalLayout_8.addItem(self.verticalSpacer_3)
 
         self.save_visible_data_button = QPushButton(self.groupBox_4)
         self.save_visible_data_button.setObjectName(u"save_visible_data_button")
 
-        self.verticalLayout_4.addWidget(self.save_visible_data_button)
+        self.verticalLayout_8.addWidget(self.save_visible_data_button)
 
+        self.create_trace_plot_push_button = QPushButton(self.groupBox_4)
+        self.create_trace_plot_push_button.setObjectName(u"create_trace_plot_push_button")
+
+        self.verticalLayout_8.addWidget(self.create_trace_plot_push_button)
+
+
+        self.horizontalLayout_15.addLayout(self.verticalLayout_8)
+
+        self.verticalLayout_4 = QVBoxLayout()
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.verticalSpacer_5 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.verticalLayout_4.addItem(self.verticalSpacer_5)
@@ -438,16 +450,16 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addWidget(self.reload_data_button)
 
-        self.verticalLayout_8 = QVBoxLayout()
-        self.verticalLayout_8.setObjectName(u"verticalLayout_8")
-
-        self.verticalLayout_4.addLayout(self.verticalLayout_8)
-
         self.reload_on_data_change_check_box = QCheckBox(self.groupBox_4)
         self.reload_on_data_change_check_box.setObjectName(u"reload_on_data_change_check_box")
 
         self.verticalLayout_4.addWidget(self.reload_on_data_change_check_box)
 
+
+        self.horizontalLayout_15.addLayout(self.verticalLayout_4)
+
+        self.horizontalLayout_15.setStretch(0, 1)
+        self.horizontalLayout_15.setStretch(1, 1)
 
         self.horizontalLayout_10.addWidget(self.groupBox_4)
 
@@ -535,6 +547,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_10.addWidget(self.events_group_box)
 
+        self.horizontalLayout_10.setStretch(2, 1)
 
         self.verticalLayout.addLayout(self.horizontalLayout_10)
 
@@ -615,6 +628,7 @@ class Ui_MainWindow(object):
         self.save_visible_data_button.setToolTip(QCoreApplication.translate("MainWindow", u"Opens a dialogue box to save the visible data to disk in a selection of different file formats.", None))
 #endif // QT_CONFIG(tooltip)
         self.save_visible_data_button.setText(QCoreApplication.translate("MainWindow", u"Save Visible Data", None))
+        self.create_trace_plot_push_button.setText(QCoreApplication.translate("MainWindow", u"Plot all Traces", None))
         self.reload_data_button.setText(QCoreApplication.translate("MainWindow", u"Reload Data", None))
         self.reload_on_data_change_check_box.setText(QCoreApplication.translate("MainWindow", u"Reload on Data Change", None))
         self.events_group_box.setTitle(QCoreApplication.translate("MainWindow", u"Events", None))
