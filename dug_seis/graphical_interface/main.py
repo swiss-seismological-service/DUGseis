@@ -221,6 +221,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._setup_info_screen()
 
+        # Globally keep track of the zoom level to retain it across operations
+        # if necessary.
+        self._state["common_plot_starttime"] = self.wh.starttime.timestamp
+        self._state["common_plot_endtime"] = self.wh.endtime.timestamp
+
     def _setup_info_screen(self):
         """
         Fill the info view.
@@ -394,19 +399,17 @@ class MainWindow(QtWidgets.QMainWindow):
         if set(self.plots.keys()) == set(channels):
             return
 
-        time_range = None
+        # Current shown time range.
+        time_range = (
+            self._state["common_plot_starttime"],
+            self._state["common_plot_endtime"],
+        )
 
         # For a while I had some smart logic in there that only modifies that
         # channels it had to with the idea of inducing less work. That was
         # really hard to get stable and always had some subtle issues. So now
         # we just recreate all plots always. Seems to be fast enough.
         if self.plots:
-            # Keep track of the time range to be able to set it later.
-            time_range = (
-                next(iter(self.plots.values()))["plot_object"]
-                .getViewBox()
-                .viewRange()[0]
-            )
             self.ui.plotWidget.clear()
 
         self.plots = {}
@@ -453,11 +456,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 xMin=self.wh.starttime.timestamp, xMax=self.wh.endtime.timestamp
             )
 
-            # And the initial extend on the x-axis.
-            # if time_range is None:
             x_range = (self.wh.starttime.timestamp, self.wh.endtime.timestamp)
-            # else:
-            #     x_range = (time_range[0], time_range[1])
             plot.setXRange(*x_range, padding=0.0)
 
             plot.addItem(
@@ -477,9 +476,9 @@ class MainWindow(QtWidgets.QMainWindow):
         for p in plot_list[1:]:
             p.setXLink(plot_list[0])
 
-        if time_range is not None:
-            for p in plot_list:
-                p.setXRange(*time_range, padding=0.0)
+        # Now all are linked so set the time range.
+        if plot_list:
+            plot_list[0].setXRange(*time_range, padding=0.0)
 
         # XXX: There must be a better way to do this ...
         # The problem is that otherwise the
@@ -571,7 +570,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if self.plots:
             plot = next(iter(self.plots.values()))["plot_object"]
-            plot.setXRange((s - duration).timestamp, (e + duration).timestamp, padding=0.0)
+            plot.setXRange(
+                (s - duration).timestamp, (e + duration).timestamp, padding=0.0
+            )
 
             self._update_picks()
 
@@ -706,6 +707,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.duration_label.setText(f"{endtime - starttime:.5g} s")
         self.ui.start_time_label.setText(str(obspy.UTCDateTime(starttime)))
         self.ui.end_time_label.setText(str(obspy.UTCDateTime(endtime)))
+        self._state["common_plot_starttime"] = starttime
+        self._state["common_plot_endtime"] = endtime
 
     def change_waveform_zoom(
         self, zoom_type: str, amount: typing.Optional[float] = None
