@@ -140,6 +140,12 @@ class MainWindow(QtWidgets.QMainWindow):
             for f in self.project.config["filters"]
         }
 
+        # Make sure the height per trace slider label is consistent with the
+        # slider value.
+        self.ui.height_per_trace_label.setText(
+            str(self.ui.height_per_trace_slider.value())
+        )
+
         # XXX: Ugly and will go at one point.
         self._disable_channel_update = False
 
@@ -497,7 +503,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self._update_picks()
         self._update_active_channels_in_3d_plot()
 
-        self.ui.plotWidget.setMinimumHeight(len(plot_list) * 100)
+        # The minimum height is adaptive to the number of plots - thus
+        # the progressbar will only be shown when necessary.
+        self.ui.plotWidget.setMinimumHeight(
+            len(plot_list) * self.ui.height_per_trace_slider.value()
+        )
 
         # Force the recomputation of the internal size to workaround a bug in
         # pyqtgraph if the minimal size of the widget becomes larger than the
@@ -1199,6 +1209,14 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         else:
             self.data_monitoring_timer.stop()
+
+    @QtCore.Slot()
+    def on_height_per_trace_slider_valueChanged(self, *args, **kwargs):
+        # Set the label
+        v = self.ui.height_per_trace_slider.value()
+        self.ui.height_per_trace_label.setText(str(v))
+        # Also change the plot widget.
+        self.ui.plotWidget.setMinimumHeight(len(self.plots) * v)
 
 
 def launch(config: typing.Dict, operator: str):
