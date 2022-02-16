@@ -18,9 +18,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComboBox,
     QFrame, QGroupBox, QHBoxLayout, QLabel,
     QListWidget, QListWidgetItem, QMainWindow, QMenuBar,
-    QPushButton, QScrollArea, QSizePolicy, QSpacerItem,
-    QSpinBox, QSplitter, QStatusBar, QTabWidget,
-    QTextBrowser, QVBoxLayout, QWidget)
+    QPushButton, QScrollArea, QSizePolicy, QSlider,
+    QSpacerItem, QSpinBox, QSplitter, QStatusBar,
+    QTabWidget, QTextBrowser, QVBoxLayout, QWidget)
 
 from pyqtgraph import GraphicsLayoutWidget
 from pyqtgraph.opengl import GLViewWidget
@@ -55,8 +55,8 @@ class Ui_MainWindow(object):
         self.groupBox.setObjectName(u"groupBox")
         sizePolicy.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
         self.groupBox.setSizePolicy(sizePolicy)
-        self.horizontalLayout_11 = QHBoxLayout(self.groupBox)
-        self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
+        self.horizontalLayout_14 = QHBoxLayout(self.groupBox)
+        self.horizontalLayout_14.setObjectName(u"horizontalLayout_14")
         self.verticalLayout_6 = QVBoxLayout()
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
         self.horizontalLayout_7 = QHBoxLayout()
@@ -133,7 +133,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 953, 375))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 951, 375))
         self.verticalLayout_9 = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
         self.plotWidget = GraphicsLayoutWidget(self.scrollAreaWidgetContents)
@@ -208,8 +208,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_6.addLayout(self.horizontalLayout_2)
 
 
-        self.horizontalLayout_11.addLayout(self.verticalLayout_6)
+        self.horizontalLayout_14.addLayout(self.verticalLayout_6)
 
+        self.verticalLayout_10 = QVBoxLayout()
+        self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.groupBox_6 = QGroupBox(self.groupBox)
         self.groupBox_6.setObjectName(u"groupBox_6")
         self.groupBox_6.setMinimumSize(QSize(150, 0))
@@ -246,8 +248,48 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.addWidget(self.show_closest_channels_button)
 
 
-        self.horizontalLayout_11.addWidget(self.groupBox_6)
+        self.verticalLayout_10.addWidget(self.groupBox_6)
 
+        self.groupBox_5 = QGroupBox(self.groupBox)
+        self.groupBox_5.setObjectName(u"groupBox_5")
+        sizePolicy3 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.groupBox_5.sizePolicy().hasHeightForWidth())
+        self.groupBox_5.setSizePolicy(sizePolicy3)
+        self.horizontalLayout_11 = QHBoxLayout(self.groupBox_5)
+        self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
+        self.height_per_trace_slider = QSlider(self.groupBox_5)
+        self.height_per_trace_slider.setObjectName(u"height_per_trace_slider")
+        self.height_per_trace_slider.setMinimum(10)
+        self.height_per_trace_slider.setMaximum(200)
+        self.height_per_trace_slider.setSingleStep(10)
+        self.height_per_trace_slider.setPageStep(25)
+        self.height_per_trace_slider.setValue(100)
+        self.height_per_trace_slider.setOrientation(Qt.Horizontal)
+
+        self.horizontalLayout_11.addWidget(self.height_per_trace_slider)
+
+        self.height_per_trace_label = QLabel(self.groupBox_5)
+        self.height_per_trace_label.setObjectName(u"height_per_trace_label")
+        sizePolicy4 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.height_per_trace_label.sizePolicy().hasHeightForWidth())
+        self.height_per_trace_label.setSizePolicy(sizePolicy4)
+        self.height_per_trace_label.setMinimumSize(QSize(20, 0))
+        self.height_per_trace_label.setMaximumSize(QSize(20, 16777215))
+        self.height_per_trace_label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.horizontalLayout_11.addWidget(self.height_per_trace_label)
+
+
+        self.verticalLayout_10.addWidget(self.groupBox_5)
+
+
+        self.horizontalLayout_14.addLayout(self.verticalLayout_10)
+
+        self.horizontalLayout_14.setStretch(0, 2)
         self.waveform_3d_view_splitter.addWidget(self.groupBox)
         self.groupBox_2 = QGroupBox(self.waveform_3d_view_splitter)
         self.groupBox_2.setObjectName(u"groupBox_2")
@@ -256,9 +298,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_7.setContentsMargins(2, -1, 2, 2)
         self.label_10 = QLabel(self.groupBox_2)
         self.label_10.setObjectName(u"label_10")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
         sizePolicy3.setHeightForWidth(self.label_10.sizePolicy().hasHeightForWidth())
         self.label_10.setSizePolicy(sizePolicy3)
         self.label_10.setFont(font)
@@ -413,11 +452,11 @@ class Ui_MainWindow(object):
 
         self.events_group_box = QGroupBox(self.waveform_tab)
         self.events_group_box.setObjectName(u"events_group_box")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.MinimumExpanding)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.events_group_box.sizePolicy().hasHeightForWidth())
-        self.events_group_box.setSizePolicy(sizePolicy4)
+        sizePolicy5 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.MinimumExpanding)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.events_group_box.sizePolicy().hasHeightForWidth())
+        self.events_group_box.setSizePolicy(sizePolicy5)
         self.events_group_box.setMaximumSize(QSize(16777215, 200))
         self.horizontalLayout_6 = QHBoxLayout(self.events_group_box)
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
@@ -449,11 +488,11 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
         self.label_12 = QLabel(self.events_group_box)
         self.label_12.setObjectName(u"label_12")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.label_12.sizePolicy().hasHeightForWidth())
-        self.label_12.setSizePolicy(sizePolicy5)
+        sizePolicy6 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        sizePolicy6.setHorizontalStretch(0)
+        sizePolicy6.setVerticalStretch(0)
+        sizePolicy6.setHeightForWidth(self.label_12.sizePolicy().hasHeightForWidth())
+        self.label_12.setSizePolicy(sizePolicy6)
 
         self.horizontalLayout_8.addWidget(self.label_12)
 
@@ -557,6 +596,8 @@ class Ui_MainWindow(object):
         self.groupBox_6.setTitle(QCoreApplication.translate("MainWindow", u"Channel Selector", None))
         self.show_channels_with_picks_button.setText(QCoreApplication.translate("MainWindow", u"Show Channels with Picks", None))
         self.show_closest_channels_button.setText(QCoreApplication.translate("MainWindow", u"Show Closest Channels", None))
+        self.groupBox_5.setTitle(QCoreApplication.translate("MainWindow", u"Minimum Height per Trace", None))
+        self.height_per_trace_label.setText(QCoreApplication.translate("MainWindow", u"100", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"3D View", None))
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"Right click to select event", None))
         self.label_11.setText(QCoreApplication.translate("MainWindow", u"Ctrl + right click to (de)select a channel", None))
