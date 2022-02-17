@@ -431,7 +431,10 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>Show Channels with Picks</string>
+                    <string>Show [C]hannels with Picks</string>
+                   </property>
+                   <property name="shortcut">
+                    <string>C</string>
                    </property>
                    <property name="flat">
                     <bool>false</bool>
@@ -865,14 +868,20 @@
                  <item>
                   <widget class="QPushButton" name="previous_event_button">
                    <property name="text">
-                    <string>Previous Event</string>
+                    <string>[P]revious Event</string>
+                   </property>
+                   <property name="shortcut">
+                    <string>P</string>
                    </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QPushButton" name="next_event_button">
                    <property name="text">
-                    <string>Next Event</string>
+                    <string>[N]ext Event</string>
+                   </property>
+                   <property name="shortcut">
+                    <string>N</string>
                    </property>
                   </widget>
                  </item>
