@@ -129,10 +129,6 @@ def amplitude_based_relative_magnitude(st_event, event):
                       time_window=TimeWindow(begin=t_window[count].begin, end=t_window[count].end,
                                              reference=t_window[count].reference)))
 
-        print(len(event.amplitudes))
-        print(index)
-        if not event.amplitudes[index]:
-            continue
 
         corr_fac_1 = np.exp(np.pi * (dist - r_0) * f_0 / (Q * V_P))
         # correction for geometrical spreading
@@ -146,11 +142,11 @@ def amplitude_based_relative_magnitude(st_event, event):
                              origin_id=event.preferred_origin_id.id,
                              mag=0.52 * tmpMrSta - 4.46,
                              station_magnitude_type='Mb',
-                             amplitude_id=event.amplitudes[index].resource_id))
+                             amplitude_id=event.amplitudes[count].resource_id))
         # store station magnitude contribution
         s_m.append(
             StationMagnitudeContribution(
-                station_magnitude_id="smi:local/" + event.station_magnitudes[index].resource_id.id,
+                station_magnitude_id="smi:local/" + event.station_magnitudes[count].resource_id.id,
                 weight=1 / len(event.amplitudes)))
 
         count+=1
