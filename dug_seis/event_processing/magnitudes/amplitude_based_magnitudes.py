@@ -129,6 +129,9 @@ def amplitude_based_relative_magnitude(st_event, event):
                       time_window=TimeWindow(begin=t_window[count].begin, end=t_window[count].end,
                                              reference=t_window[count].reference)))
 
+        if not event.amplitudes[index]:
+            continue
+
         corr_fac_1 = np.exp(np.pi * (dist - r_0) * f_0 / (Q * V_P))
         # correction for geometrical spreading
         corr_fac_2 = dist / r_0
