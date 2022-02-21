@@ -129,6 +129,8 @@ def amplitude_based_relative_magnitude(st_event, event):
                       time_window=TimeWindow(begin=t_window[count].begin, end=t_window[count].end,
                                              reference=t_window[count].reference)))
 
+        print(len(event.amplitudes))
+        print(index)
         if not event.amplitudes[index]:
             continue
 
