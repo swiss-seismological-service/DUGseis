@@ -49,10 +49,20 @@ def amplitude_based_relative_magnitude(st_event, event):
     conversion_factor_counts_mV = gainAE * Count2VoltAE  # assuming 64'000 (not 2**16 = 65536) counts
     # resolution per +/-10V (direct communication by GMuG) as well as 30dB pre-amplification
     # and 10 dB amplification from the supply/filter unit
+    # Magnitude determination per station
+    f_0 = (filter_freq_max - filter_freq_min) / 2 + filter_freq_min  # dominant frequency [Hz]
+    Q = 76.0  # Quality factor [] introduced by Hansruedi Maurer (Email 29.07.2021)
+    V_P = 5100.0  # P-wave velocity [m/s]
+    r_0 = 10.0  # reference distance [m]
+    ### For amplitude
     p_amp = []
     n_amp = []
     t_window = []
     distances = []
+    ### For magnitude
+    s_m = []
+    Mr_station = []
+
     count = 0
     tmpPicks = event.picks
     if len(tmpPicks)>len(event.preferred_origin().arrivals):
@@ -112,46 +122,39 @@ def amplitude_based_relative_magnitude(st_event, event):
                       type='AMB',
                       unit='other',
                       snr=p_amp[count] / n_amp[count],
-                      waveform_id=WaveformStreamID(network_code=st_event[index].stats.network,
-                                                   station_code=st_event[index].stats.station,
-                                                   location_code=st_event[index].stats.location,
-                                                   channel_code=st_event[index].stats.channel),
+                      waveform_id=WaveformStreamID(network_code=pick.waveform_id.network_code,
+                                                   station_code=pick.waveform_id.station_code,
+                                                   location_code=pick.waveform_id.location_code,
+                                                   channel_code=pick.waveform_id.channel_code),
                       time_window=TimeWindow(begin=t_window[count].begin, end=t_window[count].end,
                                              reference=t_window[count].reference)))
+
+        corr_fac_1 = np.exp(np.pi * (dist - r_0) * f_0 / (Q * V_P))
+        # correction for geometrical spreading
+        corr_fac_2 = dist / r_0
+        # station magnitude computation
+        tmpMrSta = np.log10(p_amp[count] * corr_fac_2 * corr_fac_1)
+        Mr_station.append(tmpMrSta)
+        # append station magnitude to event
+        event.station_magnitudes.append(
+            StationMagnitude(resource_id=f"station_magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
+                             origin_id=event.preferred_origin_id.id,
+                             mag=0.52 * tmpMrSta - 4.46,
+                             station_magnitude_type='Mb',
+                             amplitude_id=event.amplitudes[index].resource_id))
+        # store station magnitude contribution
+        s_m.append(
+            StationMagnitudeContribution(
+                station_magnitude_id="smi:local/" + event.station_magnitudes[index].resource_id.id,
+                weight=1 / len(event.amplitudes)))
+
         count+=1
 
     if not event.amplitudes:  # if no amplitudes are assigned return from the definition
         delattr(event, 'amplitudes')
         return event
 
-    # Magnitude determination per station
-    f_0 = (filter_freq_max - filter_freq_min) / 2 + filter_freq_min  # dominant frequency [Hz]
-    Q = 76.0  # Quality factor [] introduced by Hansruedi Maurer (Email 29.07.2021)
-    V_P = 5100.0  # P-wave velocity [m/s]
-    r_0 = 10.0  # reference distance [m]
 
-    s_m = []
-    Mr_station = []
-    for index, amplitudes in enumerate(event.amplitudes):
-        # distance source receiver
-        dist = distances[index]
-        # correction for attenuation
-        corr_fac_1 = np.exp(np.pi*(dist-r_0)*f_0/(Q*V_P))
-        # correction for geometrical spreading
-        corr_fac_2 = dist/r_0
-        # station magnitude computation
-        Mr_station.append(np.log10(amplitudes.generic_amplitude * corr_fac_2 * corr_fac_1))
-        # append station magnitude to event
-        event.station_magnitudes.append(
-            StationMagnitude(resource_id=f"station_magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
-                             origin_id=event.preferred_origin_id.id,
-                             mag=0.52*Mr_station[index] - 4.46,
-                             station_magnitude_type='Mb',
-                             amplitude_id=event.amplitudes[index].resource_id))
-        # store station magnitude contribution
-        s_m.append(
-            StationMagnitudeContribution(station_magnitude_id="smi:local/" + event.station_magnitudes[index].resource_id.id,
-                                         weight=1/len(event.amplitudes)))
     Mr_station = np.array(Mr_station)
     # Mr_network = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))  # network magnitude
     Mr_network = np.sum(Mr_station) / len(Mr_station) # network magnitude
