@@ -1,0 +1,62 @@
+version: 13
+
+meta:
+  project_name: VALTER_Stimu1
+  project_location: Bedretto
+  project_description: VALTER_Stimu1_live
+
+local_coordinate_system:
+  epsg_code: 2056
+  translation_vector: [2679720.696, 1151600.128, 0.0]
+
+paths:
+  asdf_folders:
+    - '/bedrettolab/waveforms/raw/continuous-01-bedretto/2021/321'
+    - '/bedrettolab/waveforms/raw/continuous-02-bedretto/2021/321'
+    - '/bedrettolab/waveforms/raw/continuous-03-bedretto/2021/321'
+    - '/bedrettolab/waveforms/raw/continuous-04-bedretto/2021/321'
+  stationxml_folders:
+    - '/home/user/XMLFiles_VALTER/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti01'
+    - '/home/user/XMLFiles_VALTER/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti02'
+    - '/home/user/XMLFiles_VALTER/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti03'
+    - '/home/user/XMLFiles_VALTER/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti04'
+#  database: 'sqlite:///home/user/VALTER_EXPERIMENT/INTERVAL7/OUTPUTS/DATABASE/VALTERStimu1_20211117_onlyauto.sqlite'
+  database: 'sqlite:///home/user/VALTER_EXPERIMENT/INTERVAL7/OUTPUTS/DATABASE/VALTERStimu1_20211117_test.sqlite'
+  cache_folder: '/home/user/VALTER_EXPERIMENT/INTERVAL7/cache'
+
+# Must cover the whole range of the experiment, e.g. more than the expected
+# start + end time for the live test case.
+temporal_range:
+  start_time: 2021-11-17T11:19:00.000Z
+  end_time: 2021-11-17T11:20:00.000Z
+
+graphical_interface:
+  classifications:
+    - passive
+    - active
+    - relocated
+    - noise
+    - unknown
+  pick_types:
+    - P
+    - S
+  uncertainties_in_ms:
+    - 0.00001
+    - 0.000025
+    - 0.00005
+  3d_view:
+    # Helpful to distinguish newer from older events.
+    color_events: plasma
+    size_events_in_pixel: 7
+    size_channels_in_pixel: 3
+    # Greenish color for channels.
+    color_channels: [0.1, 0.9, 0.0, 0.4]
+
+filters:
+  - filter_id: smi:local/bandpass_causal_1000_5000
+    filter_settings:
+      filter_type: butterworth_bandpass
+      highpass_frequency_in_hz: 1000.0
+      lowpass_frequency_in_hz: 5000.0
+      filter_corners: 4
+      zerophase: false
