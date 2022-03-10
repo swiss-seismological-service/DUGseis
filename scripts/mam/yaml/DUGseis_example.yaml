@@ -19,7 +19,7 @@ paths:
   stationxml_folders:
     - '/Users/mameier/data/project/bedretto/dugseis/valter/XMLFiles_VALTER/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti02'
     - '/Users/mameier/data/project/bedretto/dugseis/valter/XMLFiles_VALTER/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti03'
-    - '/Users/mameier/data/project/bedretto/dugseis/valter/XMLFiles_VALTER/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti04'
+#    - '/Users/mameier/data/project/bedretto/dugseis/valter/XMLFiles_VALTER/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti04'
   database: 'sqlite:///Users/mameier/data/project/bedretto/dugseis/valter/sqlite/example_database.sqlite'
   cache_folder: '/Users/mameier/data/project/bedretto/dugseis/valter/cache'
 
