@@ -159,6 +159,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.data_monitoring_timer = QtCore.QTimer()
         self.data_monitoring_timer.timeout.connect(self.check_if_data_changed)
 
+        self.ui.show_only_events_with_m_origins_button.setStyleSheet(
+            """
+            QPushButton{font-weight:400;}
+            QPushButton:checked{font-weight:700; color:black}
+            """
+        )
+
     def _init_3d_view(self, set_camera: bool = True):
         """
         Function setting up the 3-D view of the stations.
