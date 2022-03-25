@@ -207,9 +207,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 for c in self.event_summary
             ]
         )
+        origin_counts = [c["origin_count"] for c in self.event_summary]
         event_times = [c["origin_time"] for c in self.event_summary]
         assert len(event_coordinates) == len(event_times)
-        self.three_d_view.update_events(event_coordinates, event_times)
+        self.three_d_view.update_events(
+            event_coordinates,
+            event_times,
+            origin_counts,
+            show_all=not self.ui.show_only_events_with_m_origins_button.isChecked(),
+        )
 
     def _setup(self):
         """
@@ -292,7 +298,17 @@ class MainWindow(QtWidgets.QMainWindow):
             self.three_d_view.update_active_event(coordinates=None)
             return
 
+        # First select the preferred or first one.
         origin = event.preferred_origin() or event.origins[0]
+
+        # Also try to satisfy the check-box.
+        origin_id = self.ui.origin_selection_combo_box.currentText()
+        if origin_id:
+            origins = [
+                o for o in event.origins if o.resource_id.resource_id == origin_id
+            ]
+            if origins:
+                origin = origins[0]
 
         event_coords = np.array(
             [
@@ -564,10 +580,17 @@ class MainWindow(QtWidgets.QMainWindow):
         # Show the default origin.
         self._update_active_event_in_3d_plot()
 
-        # Update the origin combo box.
+        # Update the origin combo box - will trigger a redrawing of the origin selection box.
         origin_resource_ids = [str(o.resource_id.resource_id) for o in event.origins]
         self.ui.origin_selection_combo_box.clear()
         self.ui.origin_selection_combo_box.insertItems(0, origin_resource_ids)
+
+        # Set to the preferred origin if found.
+        p_id = event.preferred_origin_id
+        if p_id:
+            idx = origin_resource_ids.index(str(p_id))
+            if idx > 0:
+                self.ui.origin_selection_combo_box.setCurrentIndex(idx)
 
         # Set the classification.
         classification = event.comments[0].text.split(":", 1)[1].strip()
@@ -1154,6 +1177,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.load_event(event_number=event_number)
 
     @QtCore.Slot()
+    def on_show_only_events_with_m_origins_button_released(self):
+        self.update_events_in_3d_plot()
+
+    @QtCore.Slot()
     def on_reload_data_button_released(self):
         self.reload_data()
 
@@ -1177,28 +1204,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def on_origin_selection_combo_box_currentIndexChanged(self, *args, **kwargs):
-        if "current_event" not in self._state:
-            return
-        event = self._state["current_event"]
-        origin_id = self.ui.origin_selection_combo_box.currentText()
-        if not origin_id:
-            return
-        origins = [o for o in event.origins if o.resource_id.resource_id == origin_id]
-        if len(origins) != 1:
-            print(f"Problem finding origin for {origin_id}. Found: {origins}")
-            return
-
-        origin = origins[0]
-        event_coords = np.array(
-            [
-                self.project.global_to_local_coordinates(
-                    latitude=origin.latitude,
-                    longitude=origin.longitude,
-                    depth=origin.depth,
-                )
-            ]
-        )
-        self.three_d_view.update_active_event(coordinates=event_coords)
+        self._update_active_event_in_3d_plot()
 
     @QtCore.Slot()
     def on_channel_list_widget_itemSelectionChanged(self, *args, **kwargs):

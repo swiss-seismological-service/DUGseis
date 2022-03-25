@@ -49,6 +49,9 @@ class ThreeDView:
             dist = np.linalg.norm(
                 np.cross(-direction, point - self.event_coordinates), axis=1
             )
+            # Artificially increase the distance to points that are not visible
+            # so they are never selected.
+            dist[self.event_pixel_size == 0] *= 1e20
             event_index = np.argmin(dist)
             self.parent.load_event(event_number=event_index + 1)
         # Control + right click -> select channel.
@@ -160,6 +163,8 @@ class ThreeDView:
         self,
         event_coordinates: np.ndarray,
         event_times: typing.List[obspy.UTCDateTime],
+        origin_counts: typing.List[int],
+        show_all: bool,
     ):
         """
         Update all events.
@@ -167,6 +172,9 @@ class ThreeDView:
         Args:
             event_coordinates: The event coordinates.
             event_times: The times for each event.
+            origin_counts: The number of origins for each event.
+            show_all: If True, show all events. Otherwise only the ones that
+                have more than one origin.
         """
         if not len(event_coordinates):
             self.remove_item_if_exists(key=Item.all_events)
@@ -174,7 +182,19 @@ class ThreeDView:
 
         self.event_coordinates = event_coordinates.copy()
 
-        size = np.ones(len(event_coordinates)) * self.config["size_events_in_pixel"]
+        origin_counts = np.array(origin_counts)
+        origin_counts = origin_counts > 1
+
+        # Simple trick to hide some but still not mess up the event index
+        # mapping.
+        if show_all:
+            size = np.ones(len(origin_counts))
+        else:
+            size = np.require(origin_counts, dtype=np.float64)
+
+        size *= self.config["size_events_in_pixel"]
+
+        self.event_pixel_size = size
 
         event_color = self.config["color_events"]
         if isinstance(event_color, str):
@@ -196,6 +216,7 @@ class ThreeDView:
             color = np.tile(
                 self.config["color_events"], len(event_coordinates)
             ).reshape((len(event_coordinates), 4))
+
         self.add_item(
             key=Item.all_events,
             item=gl.GLScatterPlotItem(pos=event_coordinates, size=size, color=color),

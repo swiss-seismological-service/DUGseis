@@ -591,6 +591,16 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QPushButton" name="show_only_events_with_m_origins_button">
+              <property name="text">
+               <string>Only Show Events With Multiple Origins</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </widget>

@@ -22,6 +22,7 @@ This is not tuned to be as efficient as possible but rather to be correct and
 maintaineable.
 """
 
+import collections
 import copy
 import pathlib
 import sqlite3
@@ -1362,18 +1363,19 @@ class _SQLiteBackend:
 
     def get_event_summary(self) -> typing.List[typing.Dict[str, typing.Any]]:
         """
-        Get a short summary of all events, sorted by earliest origin.
+        Get a short summary of all events, sorted by origin time.
 
-        The returned latitude/longitude/depth belong to the earliest origin of
-        each event.
+        For each event it will either choose the preferred or first origin.
         """
         sql = """
         SELECT
             event_public_object.publicID,
-            MIN(Origin.time_value_ms),
+            Event.preferredOriginID,
+            Origin.time_value_ms,
             Origin.latitude_value,
             Origin.longitude_value,
-            Origin.depth_value
+            Origin.depth_value,
+            public_origin_object.publicID
 
         -- Get all origin references.
         FROM OriginReference
@@ -1390,21 +1392,41 @@ class _SQLiteBackend:
         JOIN Origin
             ON Origin._oid = public_origin_object._oid
 
-        -- Only a single event.
-        GROUP BY Event._oid
+        -- Order by the time value to have a deterministic return value.
         ORDER BY Origin.time_value_ms
         """
         results = self.cursor.execute(sql).fetchall()
-        return [
-            {
-                "event_resource_id": i[0],
-                "origin_time": obspy.UTCDateTime(i[1] / 1000.0),
-                "latitude": i[2],
-                "longitude": i[3],
-                "depth": i[4],
-            }
-            for i in results
-        ]
+
+        # We need to do a bit of manual processing. I'm not sure if there is a
+        # way to do this directly in SQLite.
+        # This is likely a bit slower but easy to understand. The whole thing
+        # takes about 0.2 seconds for a database with ~2500 events. Hopefully okay.
+        grouped_results = collections.defaultdict(list)
+        for r in results:
+            grouped_results[r[0]].append(r)
+
+        final_results = []
+        for v in grouped_results.values():
+            preferred_origin_id = v[0][1]
+            # If there is a preferred origin, pick it.
+            if preferred_origin_id:
+                this_origin = [i for i in v if i[6] == preferred_origin_id][0]
+            # Otherwise just pick the first one.
+            else:
+                this_origin = v[0]
+
+            final_results.append(
+                {
+                    "event_resource_id": this_origin[0],
+                    "origin_time": obspy.UTCDateTime(this_origin[2] / 1000.0),
+                    "latitude": this_origin[3],
+                    "longitude": this_origin[4],
+                    "depth": this_origin[5],
+                    "origin_count": len(v),
+                }
+            )
+
+        return final_results
 
     def get_unassociated_picks(self) -> obspy.core.event.Pick:
         """

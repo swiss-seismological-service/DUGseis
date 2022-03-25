@@ -532,6 +532,7 @@ def test_get_event_summary_real():
             "longitude": event.origins[0].longitude,
             "depth": event.origins[0].depth,
             "origin_time": event.origins[0].time,
+            "origin_count": 1,
         }
         for event in cat.events
     ]
@@ -581,6 +582,12 @@ def test_get_event_summary_constructed():
             longitude=5.0,
             depth=6.0,
         ),
+        obspy.core.event.Origin(
+            time=obspy.UTCDateTime(100),
+            latitude=44.0,
+            longitude=5.0,
+            depth=6.0,
+        ),
     ]
 
     db = DB(url="sqlite://:memory:")
@@ -598,6 +605,7 @@ def test_get_event_summary_constructed():
             "longitude": 2.0,
             "depth": 3.0,
             "origin_time": obspy.UTCDateTime(-20),
+            "origin_count": 2,
         },
         {
             "event_resource_id": event3.resource_id.resource_id,
@@ -605,6 +613,7 @@ def test_get_event_summary_constructed():
             "longitude": 5.0,
             "depth": 6.0,
             "origin_time": obspy.UTCDateTime(-10),
+            "origin_count": 3,
         },
         {
             "event_resource_id": event1.resource_id.resource_id,
@@ -612,6 +621,93 @@ def test_get_event_summary_constructed():
             "longitude": 8.0,
             "depth": 9.0,
             "origin_time": obspy.UTCDateTime(0),
+            "origin_count": 2,
+        },
+    ]
+
+
+def test_get_event_summary_returns_preferred_origin():
+    # Event 1 - the preferred origin is the second.
+    event1 = obspy.core.event.Event(resource_id="event1")
+    event1.origins = [
+        obspy.core.event.Origin(
+            time=obspy.UTCDateTime(0), latitude=7.0, longitude=8.0, depth=9.0
+        ),
+        obspy.core.event.Origin(
+            time=obspy.UTCDateTime(20),
+            latitude=31.034,
+            longitude=12.0,
+            depth=10020.0,
+        ),
+    ]
+    event1.preferred_origin_id = event1.origins[1].resource_id
+
+    # Event 2 - the preferred origin is the first.
+    event2 = obspy.core.event.Event(resource_id="event2")
+    event2.origins = [
+        obspy.core.event.Origin(
+            time=obspy.UTCDateTime(-20),
+            latitude=1.0,
+            longitude=2.0,
+            depth=3.0,
+        ),
+        obspy.core.event.Origin(
+            time=obspy.UTCDateTime(40),
+            latitude=31.034,
+            longitude=12.0,
+            depth=10020.0,
+        ),
+    ]
+    event2.preferred_origin_id = event2.origins[0].resource_id
+
+    # Event 3 - no preferred origin - Should pick the second one with the
+    # earlier origin time.
+    event3 = obspy.core.event.Event(resource_id="event3")
+    event3.origins = [
+        obspy.core.event.Origin(
+            time=obspy.UTCDateTime(70),
+            latitude=32.034,
+            longitude=12.0,
+            depth=10020.0,
+        ),
+        obspy.core.event.Origin(
+            time=obspy.UTCDateTime(-10),
+            latitude=4.0,
+            longitude=5.0,
+            depth=6.0,
+        ),
+    ]
+
+    db = DB(url="sqlite://:memory:")
+    db += event1
+    db += event2
+    db += event3
+
+    event_summary = db.get_event_summary()
+    assert event_summary == [
+        {
+            "event_resource_id": "event2",
+            "latitude": 1.0,
+            "longitude": 2.0,
+            "depth": 3.0,
+            "origin_time": obspy.UTCDateTime(1969, 12, 31, 23, 59, 40),
+            "origin_count": 2,
+        },
+        {
+            "event_resource_id": "event3",
+            "latitude": 4.0,
+            "longitude": 5.0,
+            "depth": 6.0,
+            "origin_time": obspy.UTCDateTime(1969, 12, 31, 23, 59, 50),
+            "origin_count": 2,
+        },
+        {
+            "event_resource_id": "event1",
+            "latitude": 31.034,
+            "longitude": 12.0,
+            "depth": 10020.0,
+            "origin_time": obspy.UTCDateTime(1970, 1, 1, 0, 0, 20),
+            "origin_count": 2,
         },
     ]
 
