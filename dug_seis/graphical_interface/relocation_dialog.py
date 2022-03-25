@@ -325,6 +325,13 @@ class RelocationDialog(QtWidgets.QDialog):
 
         # Save and update.
         self.project.db.update_event(self.event)
+
+        # Make sure the 3-D plot is potentially also updated.
+        self.parent.event_summary = self.parent.project.db.get_event_summary()
+        assert self.parent.event_count == len(self.parent.event_summary)
+        self.parent.update_events_in_3d_plot()
+
+        # Now load the new event into the UI and everything should be good.
         event_number = self.parent.ui.event_number_spin_box.value()
         self.parent.load_event(event_number=event_number)
 

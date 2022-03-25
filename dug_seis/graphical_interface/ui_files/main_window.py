@@ -321,6 +321,12 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_7.addWidget(self.stationViewGLWidget)
 
+        self.show_only_events_with_m_origins_button = QPushButton(self.groupBox_2)
+        self.show_only_events_with_m_origins_button.setObjectName(u"show_only_events_with_m_origins_button")
+        self.show_only_events_with_m_origins_button.setCheckable(True)
+
+        self.verticalLayout_7.addWidget(self.show_only_events_with_m_origins_button)
+
         self.waveform_3d_view_splitter.addWidget(self.groupBox_2)
 
         self.verticalLayout.addWidget(self.waveform_3d_view_splitter)
@@ -618,6 +624,7 @@ class Ui_MainWindow(object):
         self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"3D View", None))
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"Right click to select event", None))
         self.label_11.setText(QCoreApplication.translate("MainWindow", u"Ctrl + right click to (de)select a channel", None))
+        self.show_only_events_with_m_origins_button.setText(QCoreApplication.translate("MainWindow", u"Only Show Events With Multiple Origins", None))
         self.groupBox_3.setTitle(QCoreApplication.translate("MainWindow", u"Pick Settings", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Phase", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"Polarity", None))
