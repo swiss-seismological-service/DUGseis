@@ -134,6 +134,8 @@ def amplitude_based_relative_magnitude(st_event, event):
         # correction for geometrical spreading
         corr_fac_2 = dist / r_0
         # station magnitude computation
+        if p_amp[count]==0:
+            continue
         tmpMrSta = np.log10(p_amp[count] * corr_fac_2 * corr_fac_1)
         Mr_station.append(tmpMrSta)
         # append station magnitude to event
