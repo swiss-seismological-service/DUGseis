@@ -39,10 +39,12 @@ if True:
 # get unassociated events from the database
 unas_picks = []
 unas_picks_ch = []
-unas_picks_phase
+unas_picks_phase = []
 u_picks = database.get_unassociated_picks()
 for u_pick in u_picks:
     utc = u_pick.time
     unas_picks.append(utc.datetime)
-    unas_picks_ch.append(u_pick.waveform_id.station_code) #or network_code, channel_code, location_code
+    unas_picks_ch.append(
+        u_pick.waveform_id.station_code
+    )  # or network_code, channel_code, location_code
     unas_picks_phase.append(u_pick.phase_hint)
