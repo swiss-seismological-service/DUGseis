@@ -1,52 +1,30 @@
-
-import copy
 import logging
-import pathlib
-import re
 import time
 
+import numpy as np
 import obspy
 import obspy.realtime
-
-import tqdm
-import yaml
-
-# Import from the DUGSeis library.
-from dug_seis.project.project import DUGSeisProject
-from dug_seis.waveform_handler.waveform_handler import FILENAME_REGEX
-from dug_seis import util
-
-from aurem.aurem import REC
-
-import numpy as np
-
-from dug_seis.event_processing.detection.dug_trigger import dug_trigger
-from dug_seis.event_processing.picking.dug_picker import dug_picker
-from dug_seis.event_processing.location.locate_homogeneous import (
-    locate_in_homogeneous_background_medium,
-)
-
-from dug_seis.event_processing.magnitudes.amplitude_based_magnitudes import amplitude_based_relative_magnitude
-from obspy.core.event import Magnitude
-
-import copy
-import math
-from matplotlib import mlab
-from matplotlib.collections import LineCollection
-import matplotlib.transforms as transforms
-from scipy.stats import kurtosis
-from scipy import signal
 from obspy.signal.filter import bandpass
 from obspy.signal.invsim import cosine_taper
 from obspy.core.event import WaveformStreamID, Pick
+from scipy.stats import kurtosis
+from scipy import signal
+import tqdm
 
 
-
-
-
+from dug_seis import util
+from dug_seis.event_processing.detection.dug_trigger import dug_trigger
+from dug_seis.event_processing.location.locate_homogeneous import (
+    locate_in_homogeneous_background_medium,
+)
+from dug_seis.event_processing.magnitudes.amplitude_based_magnitudes import (
+    amplitude_based_relative_magnitude,
+)
+from dug_seis.project.project import DUGSeisProject
 
 
 ###############################################
+
 
 def nans(shape, dtype=float):  # shape : [lignes,colonnes]
     "creer une matrice de NaN"
@@ -63,7 +41,9 @@ def inc_zeros(small_v, n, i):
         if i < 1:
             big_v = np.concatenate((small_v, np.zeros(n - (b + i))), axis=0)
         else:
-            big_v = np.concatenate((np.zeros(i - 1), small_v, np.zeros(n - (b + i) + 1)), axis=0)
+            big_v = np.concatenate(
+                (np.zeros(i - 1), small_v, np.zeros(n - (b + i) + 1)), axis=0
+            )
     return big_v
 
 
@@ -81,7 +61,7 @@ def KurtoF(data, window_sample, n_bands):
         idx = np.array(np.nonzero(np.isnan(v) == 0))
         a = idx[0, 0]  # first element != NaN
         b = idx[0, -1]  # last element != NaN
-        inp = v[a:b + 1]
+        inp = v[a : b + 1]
         # Compute Kurtosis
         average = signal.lfilter(np.ones([Nwin]) / Nwin, 1, inp)
         # end1 = time.time()
@@ -92,11 +72,11 @@ def KurtoF(data, window_sample, n_bands):
         # end1 = time.time()
         # print(f"Runtime of m2, m4 {end1 - start1}")
         # start1 = time.time()
-        out = m_4 / (m_2 ** 2)
+        out = m_4 / (m_2**2)
         # end1 = time.time()
         # print(f"Runtime of kurtosis {end1 - start1}")
         # start1=time.time()
-        out = inc_zeros(out[Nwin - 1:], len(inp), Nwin + (a + 1) - 1)
+        out = inc_zeros(out[Nwin - 1 :], len(inp), Nwin + (a + 1) - 1)
         kt.append(out)
     #     end1 = time.time()
     #     print(f"Runtime of out {end1 - start1}")
@@ -108,20 +88,17 @@ def KurtoF(data, window_sample, n_bands):
 
 def Kurto(tr, t_win, delta, npts, sampling_rate):
     data = tr.data
-    t = np.arange(0, delta * npts, delta)
     m = len(data)
     Nsta = int(t_win * sampling_rate)
 
     # create zeros 2D array for BF
     kt = np.zeros(m, dtype="float64")
-    pad_kt = np.zeros(Nsta)
     # Tricky: Construct a big window of length len(a)-nsta. Now move this
     # window nsta points, i.e. the window "sees" every point in a at least
     # once.
     # Changed xrange to range as it is compatible in both python 2 & 3
     for i in range(m):  # window size to smooth over
-        kt[i] = abs(kurtosis(data[i - Nsta: i]))
-
+        kt[i] = abs(kurtosis(data[i - Nsta : i]))
         kt[0:Nsta] = 0
 
     return kt
@@ -148,7 +125,7 @@ def filter(tr, freqmin, cnr, perc_taper):
     fcenter = np.zeros(n_bands)
 
     for j in range(n_bands):
-        octave_high = (freqmin + freqmin * 2.0) / 2.0 * (2 ** j)
+        octave_high = (freqmin + freqmin * 2.0) / 2.0 * (2**j)
         octave_low = octave_high / 2.0
         fcenter[j] = (octave_low + octave_high) / 2.0
         BF[j] = bandpass(
@@ -167,9 +144,6 @@ def filter(tr, freqmin, cnr, perc_taper):
 def KurtoFreq(tr, freqmin, t_long, cnr, perc_taper):
     """Calculate statistics for each band."""
     n_bands = N_bands(tr, freqmin)
-    LEN = tr.stats.npts
-    delta = 1.0 / tr.stats.sampling_rate
-    sampling_rate = tr.stats.sampling_rate
     dt = tr.stats.delta
     npts_t_long = int(t_long / dt) + 1
 
@@ -187,7 +161,7 @@ def KurtoFreq(tr, freqmin, t_long, cnr, perc_taper):
 
 def rms(x, axis=None):
     """Function to calculate the root mean square value of an array."""
-    return np.sqrt(np.mean(x ** 2, axis=axis))
+    return np.sqrt(np.mean(x**2, axis=axis))
 
 
 def rolling_window(a, window):
@@ -204,6 +178,7 @@ def rolling_window(a, window):
 
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
+
 def threshold(tr, HOS, t_ma, nsigma):
     """
     Control the threshold level with nsigma.
@@ -219,11 +194,11 @@ def threshold(tr, HOS, t_ma, nsigma):
     #     * nsigma
     # )
     threshold[npts_Tma:LEN] = (
-            np.mean(rolling_window(HOS[0: LEN - 1], npts_Tma), -1)
-            * nsigma
+        np.mean(rolling_window(HOS[0 : LEN - 1], npts_Tma), -1) * nsigma
     )
 
     return threshold
+
 
 ###################################################
 
@@ -248,19 +223,49 @@ util.setup_logging_to_file(
 logger = logging.getLogger(__name__)
 
 # Load the DUGSeis project.
-project5P = DUGSeisProject(config="./post_processing_VALTERInt13_20220323_Stimulation.yaml")
-project3P = DUGSeisProject(config="./post_processing_VALTERInt13_20220323_Stimulation_3Picks.yaml")
+project5P = DUGSeisProject(
+    config="./post_processing_VALTERInt13_20220323_Stimulation.yaml"
+)
+project3P = DUGSeisProject(
+    config="./post_processing_VALTERInt13_20220323_Stimulation_3Picks.yaml"
+)
 
 
 active_channels = ["XB.02.31.001", "XB.03.31.001", "XB.04.31.001"]
-channels_toRm = ["XB.02.02.001", "XB.02.04.001", "XB.02.05.001", "XB.02.06.001",
-                     "XB.02.11.001", "XB.02.13.001", "XB.02.14.001", "XB.02.15.001", "XB.02.16.001", "XB.02.17.001",
-                     "XB.02.18.001", "XB.02.21.001", "XB.02.24.001", "XB.02.25.001", "XB.02.26.001", "XB.02.27.001", "XB.02.30.001",
-                     "XB.04.01.001", "XB.04.03.001", "XB.04.04.001", "XB.04.05.001", "XB.04.12.001",
-                     "XB.04.13.001", "XB.04.14.001", "XB.04.15.001",
-                     "XB.04.20.001", "XB.04.21.001", "XB.04.22.001", "XB.04.23.001",
-                     "XB.03.05.001", "XB.03.07.001"]#,
-                     # "XB.02.31.001", "XB.03.31.001", "XB.04.31.001"]  # Remove accelerometers and channels with spikes
+channels_toRm = [
+    "XB.02.02.001",
+    "XB.02.04.001",
+    "XB.02.05.001",
+    "XB.02.06.001",
+    "XB.02.11.001",
+    "XB.02.13.001",
+    "XB.02.14.001",
+    "XB.02.15.001",
+    "XB.02.16.001",
+    "XB.02.17.001",
+    "XB.02.18.001",
+    "XB.02.21.001",
+    "XB.02.24.001",
+    "XB.02.25.001",
+    "XB.02.26.001",
+    "XB.02.27.001",
+    "XB.02.30.001",
+    "XB.04.01.001",
+    "XB.04.03.001",
+    "XB.04.04.001",
+    "XB.04.05.001",
+    "XB.04.12.001",
+    "XB.04.13.001",
+    "XB.04.14.001",
+    "XB.04.15.001",
+    "XB.04.20.001",
+    "XB.04.21.001",
+    "XB.04.22.001",
+    "XB.04.23.001",
+    "XB.03.05.001",
+    "XB.03.07.001",
+]  # ,
+# "XB.02.31.001", "XB.03.31.001", "XB.04.31.001"]  # Remove accelerometers and channels with spikes
 Tmp_all_channels = sorted(project5P.channels.keys())
 all_channels = [x for x in Tmp_all_channels if x not in channels_toRm]
 
@@ -292,7 +297,7 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
             "XB.03.20.001",
             "XB.04.10.001",
             "XB.04.25.001",
-            "XB.02.31.001"
+            "XB.02.31.001",
         ],
         start_time=interval_start,
         end_time=interval_end,
@@ -335,7 +340,10 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
 
     # startT_interval = time.time()
     for event_candidate in detected_events:
-        if event_candidate['classification'] != 'electronic' and event_candidate['classification'] != 'active':
+        if (
+            event_candidate["classification"] != "electronic"
+            and event_candidate["classification"] != "active"
+        ):
             interval_start = event_candidate["time"] - 15e-3
             interval_end = event_candidate["time"] + 20e-3
             dt = interval_end - interval_start
@@ -359,7 +367,7 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
                 # here.
                 channel_ids=active_channels,
                 start_time=interval_start,
-                end_time=interval_end
+                end_time=interval_end,
             )
 
             tr_active = 0
@@ -370,7 +378,9 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
                 sampling_rate = tr.stats.sampling_rate
 
                 # Characteristic function
-                HOS, filtSig, n_bands, frequencies = KurtoFreq(tr, freqmin, t_win, cnr, perc_taper)
+                HOS, filtSig, n_bands, frequencies = KurtoFreq(
+                    tr, freqmin, t_win, cnr, perc_taper
+                )
                 HOS_max = np.amax(HOS, axis=0)
 
                 dt = tr.stats.delta
@@ -386,34 +396,46 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
                 nptsTr = int(round(t_Tr / dt, 0))
                 trigger_ptnl_index = np.where(
                     (HOS_max[nptsTr:LEN] > threshold_HOS_max[nptsTr:LEN])
-                    & (cHOS_detrend[nptsTr:LEN] < 0))
+                    & (cHOS_detrend[nptsTr:LEN] < 0)
+                )
                 trigger_ptnl_index = trigger_ptnl_index + np.array(nptsTr)
 
                 time_array = np.arange(tr.stats.npts) / tr.stats.sampling_rate
                 if len(trigger_ptnl_index[0]) > 0:
                     if trigger_ptnl_index[0][0] > ncum0:
                         time_array_Pick = time_array[
-                                          trigger_ptnl_index[0][0] - ncum0:trigger_ptnl_index[0][0] + ncum1]
-                        HOSPick = HOS_max[trigger_ptnl_index[0][0] - ncum0:trigger_ptnl_index[0][
-                                                                               0] + ncum1]  # portion of HOS to compute pick
+                            trigger_ptnl_index[0][0]
+                            - ncum0 : trigger_ptnl_index[0][0]
+                            + ncum1
+                        ]
+                        HOSPick = HOS_max[
+                            trigger_ptnl_index[0][0]
+                            - ncum0 : trigger_ptnl_index[0][0]
+                            + ncum1
+                        ]  # portion of HOS to compute pick
                         cte = trigger_ptnl_index[0][0] - ncum0
                     else:
-                        time_array_Pick = time_array[trigger_ptnl_index[0][0]:trigger_ptnl_index[0][0] + ncum1]
-                        HOSPick = HOS_max[trigger_ptnl_index[0][0]:trigger_ptnl_index[0][
-                                                                       0] + ncum1]  # portion of HOS to compute pick
+                        time_array_Pick = time_array[
+                            trigger_ptnl_index[0][0] : trigger_ptnl_index[0][0] + ncum1
+                        ]
+                        HOSPick = HOS_max[
+                            trigger_ptnl_index[0][0] : trigger_ptnl_index[0][0] + ncum1
+                        ]  # portion of HOS to compute pick
                         cte = trigger_ptnl_index[0][0]
 
                     cHOSPick = np.cumsum(HOSPick)
                     cHOSPick_detrend = signal.detrend(cHOSPick)
-                    fPick = np.argmin(cHOSPick_detrend) + trigger_ptnl_index[0][0] - ncum0
+                    fPick = (
+                        np.argmin(cHOSPick_detrend) + trigger_ptnl_index[0][0] - ncum0
+                    )
                     fTimePick = time_array[fPick]
                     if fTimePick != 0:
                         fTimeTransm = fTimePick
-                        if fTimePick<event_candidate["time"]:
-                            event_candidate['classification'] = "active"
+                        if fTimePick < event_candidate["time"]:
+                            event_candidate["classification"] = "active"
                             break  # if picks are made after the transmitter signal, they are active shots
 
-            if event_candidate['classification'] == "active":
+            if event_candidate["classification"] == "active":
                 continue
             # if tr_active == 3:
             #     event_candidate['classification'] = "active"
@@ -426,7 +448,7 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
                 # here.
                 channel_ids=all_channels,
                 start_time=interval_start,
-                end_time=interval_end
+                end_time=interval_end,
             )
 
             picks2 = picks1
@@ -442,14 +464,16 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
 
                 data = tr.data
 
-                sensorXML = project5P.inventory.select('XB', tr.id[3:5], tr.id[6:8])
+                sensorXML = project5P.inventory.select("XB", tr.id[3:5], tr.id[6:8])
 
                 delta = 1.0 / tr.stats.sampling_rate
                 npts = tr.stats.npts
                 sampling_rate = tr.stats.sampling_rate
 
                 # Characteristic function
-                HOS, filtSig, n_bands, frequencies = KurtoFreq(tr, freqmin, t_win, cnr, perc_taper)
+                HOS, filtSig, n_bands, frequencies = KurtoFreq(
+                    tr, freqmin, t_win, cnr, perc_taper
+                )
 
                 # Summary characteristic function
                 HOS_max = np.amax(HOS, axis=0)
@@ -472,7 +496,8 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
                 nptsTr = int(round(t_Tr / dt, 0))
                 trigger_ptnl_index = np.where(
                     (HOS_max[nptsTr:LEN] > threshold_HOS_max[nptsTr:LEN])
-                    & (cHOS_detrend[nptsTr:LEN] < 0))
+                    & (cHOS_detrend[nptsTr:LEN] < 0)
+                )
                 trigger_ptnl_index = trigger_ptnl_index + np.array(nptsTr)
 
                 time_array = np.arange(tr.stats.npts) / tr.stats.sampling_rate
@@ -481,19 +506,30 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
                     time1.append(time_array[trigger_ptnl_index[0]])
                     if trigger_ptnl_index[0][0] > ncum0:
                         time_array_Pick = time_array[
-                                          trigger_ptnl_index[0][0] - ncum0:trigger_ptnl_index[0][0] + ncum1]
-                        HOSPick = HOS_max[trigger_ptnl_index[0][0] - ncum0:trigger_ptnl_index[0][
-                                                                               0] + ncum1]  # portion of HOS to compute pick
+                            trigger_ptnl_index[0][0]
+                            - ncum0 : trigger_ptnl_index[0][0]
+                            + ncum1
+                        ]
+                        HOSPick = HOS_max[
+                            trigger_ptnl_index[0][0]
+                            - ncum0 : trigger_ptnl_index[0][0]
+                            + ncum1
+                        ]  # portion of HOS to compute pick
                         cte = trigger_ptnl_index[0][0] - ncum0
                     else:
-                        time_array_Pick = time_array[trigger_ptnl_index[0][0]:trigger_ptnl_index[0][0] + ncum1]
-                        HOSPick = HOS_max[trigger_ptnl_index[0][0]:trigger_ptnl_index[0][
-                                                                       0] + ncum1]  # portion of HOS to compute pick
+                        time_array_Pick = time_array[
+                            trigger_ptnl_index[0][0] : trigger_ptnl_index[0][0] + ncum1
+                        ]
+                        HOSPick = HOS_max[
+                            trigger_ptnl_index[0][0] : trigger_ptnl_index[0][0] + ncum1
+                        ]  # portion of HOS to compute pick
                         cte = trigger_ptnl_index[0][0]
 
                     cHOSPick = np.cumsum(HOSPick)
                     cHOSPick_detrend = signal.detrend(cHOSPick)
-                    fPick = np.argmin(cHOSPick_detrend) + trigger_ptnl_index[0][0] - ncum0
+                    fPick = (
+                        np.argmin(cHOSPick_detrend) + trigger_ptnl_index[0][0] - ncum0
+                    )
                     fTimePick = time_array[fPick]
 
                 if fTimePick != 0:
@@ -507,10 +543,7 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
                     SNR = np.mean(abs(trSignal.data)) / np.mean(abs(trNoise.data))
 
                     if SNR >= 1.3:
-                        t_pick_UTC = (
-                                tr.stats.starttime
-                                + fTimePick
-                        )
+                        t_pick_UTC = tr.stats.starttime + fTimePick
                         picks1.append(
                             Pick(
                                 time=t_pick_UTC,
@@ -535,13 +568,16 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
             if len(picks1) == 0:
                 continue
 
-            ### To check that it is a new event
-            ### if average time difference between picks of new event and picks of
-            ### previous event less than minimum_time_between_events_in_seconds,
-            ### not a new event, continue
+            # To check that it is a new event
+            # if average time difference between picks of new event and picks of
+            # previous event less than minimum_time_between_events_in_seconds,
+            # not a new event, continue
             # startT = time.time()
             dt_events = [y.time - x.time for (x, y) in zip(picks2, picks1)]
-            if np.sum(dt_events) / len(dt_events) <= minimum_time_between_events_in_seconds:
+            if (
+                np.sum(dt_events) / len(dt_events)
+                <= minimum_time_between_events_in_seconds
+            ):
                 continue
             # endT = time.time()
             # logger.info(f"Took {(endT - startT) / 60.} minutes to remove double event.")
@@ -637,7 +673,6 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
                 local_to_global_coordinates=project5P.local_to_global_coordinates,
             )
 
-
             # If there is a magnitude determination algorithm this could happen
             # here. Same with a moment tensor inversion. Anything really.
             event = amplitude_based_relative_magnitude(st_event, event)
@@ -645,21 +680,15 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
             # Write the classification as a comment.
             if len(picks) < 5:
                 event.comments = [
-                        obspy.core.event.Comment(
-                            text=f"Classification:{'smallpassive'}"
-                        )
+                    obspy.core.event.Comment(text=f"Classification:{'smallpassive'}")
                 ]
-            elif len(picks) >=5 and len(picks)<=7:
+            elif len(picks) >= 5 and len(picks) <= 7:
                 event.comments = [
-                        obspy.core.event.Comment(
-                            text=f"Classification:{'mediumpassive'}"
-                        )
+                    obspy.core.event.Comment(text=f"Classification:{'mediumpassive'}")
                 ]
             else:
                 event.comments = [
-                    obspy.core.event.Comment(
-                        text=f"Classification: {'passive'}"
-                    )
+                    obspy.core.event.Comment(text=f"Classification: {'passive'}")
                 ]
 
             # Could optionally do a QA step here.
@@ -672,7 +701,7 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
 
             # Add the event to the project.
             added_event_count += 1
-            if len(picks)<5:
+            if len(picks) < 5:
                 project3P.db.add_object(event)
             else:
                 project5P.db.add_object(event)
@@ -690,4 +719,3 @@ logger.info("DONE.")
 logger.info(f"Found {total_event_count} events.")
 endT = time.time()
 logger.info(f"Total time {(endT - startT_all)} seconds.")
-
