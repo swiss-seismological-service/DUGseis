@@ -1,4 +1,4 @@
-version: 13
+version: 14
 
 meta:
   project_name: VALTER_Stimu1
@@ -52,15 +52,17 @@ graphical_interface:
     size_channels_in_pixel: 3
     # Greenish color for channels.
     color_channels: [0.1, 0.9, 0.0, 0.4]
-
   location_algorithm_default_args:
-    velocity: 5100.0
+    velocity:
+      P: 5100.0
     damping: 0.01
     use_anisotropy: true
-    azi: 310.0
-    inc: 28.6
-    delta: 0.071
-    epsilon: 0.067
+    anisotropy_parameters:
+      P:
+        azi: 310.0
+        inc: 28.6
+        delta: 0.071
+        epsilon: 0.067
 
 filters:
   - filter_id: smi:local/bandpass_causal_1000_5000
