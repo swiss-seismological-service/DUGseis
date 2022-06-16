@@ -1,3 +1,22 @@
+# DUGSeis
+# Copyright (C) 2021 DUGSeis Authors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+FBKT picker.
+"""
 import numpy as np
 import obspy
 from scipy import signal
@@ -51,7 +70,6 @@ def inc_zeros(small_v, n, i):
 def N_bands(tr, freqmin):
     """
     Determine number of band n_bands in term of sampling rate.
-
     Args:
         freqmin: The center frequency of first octave filtering band.
     """
@@ -108,7 +126,6 @@ def rolling_window(a, window):
     Picker._statistics() to calculate statistics and
     Summary.threshold() to calcuate threshold to trigger event
     Reference from:
-
     http://www.rigtorp.se/2011/01/01/rolling-statistics-numpy.html
     """
     shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
@@ -138,7 +155,7 @@ def threshold(tr, HOS, t_ma, nsigma):
     return threshold
 
 
-def virginie_picker(
+def fbkt_picker(
     st: obspy.Stream,
     number_of_parallel_jobs: int,
     t_win: float,
@@ -153,11 +170,8 @@ def virginie_picker(
 ):
     """
     Main entry point for the picker.
-
     Should likely be renamed.
-
     Will run in parallel using joblib.
-
     Args:
         st: The waveforms to pick on.
         number_of_parallel_jobs: Parallelize the picker.
@@ -182,13 +196,13 @@ def virginie_picker(
         from joblib import Parallel, delayed  # NOQA
 
         results = Parallel(n_jobs=number_of_parallel_jobs)(
-            delayed(virginie_picker_per_trace)(tr, *args) for tr in st
+            delayed(fbkt_picker_per_trace)(tr, *args) for tr in st
         )
     elif number_of_parallel_jobs == 1:
         # Fall back to a list-comprehension for serial execution - this makes
         # debugging the algorithm simpler as it does not run through joblib in
         # that case.
-        results = [virginie_picker_per_trace(tr, *args) for tr in st]
+        results = [fbkt_picker_per_trace(tr, *args) for tr in st]
     else:
         raise ValueError("Invalid number of parallel jobs.")
 
@@ -196,7 +210,7 @@ def virginie_picker(
     return [r for r in results if r is not None]
 
 
-def virginie_picker_per_trace(
+def fbkt_picker_per_trace(
     tr: obspy.Trace,
     t_win: float,
     freqmin: float,

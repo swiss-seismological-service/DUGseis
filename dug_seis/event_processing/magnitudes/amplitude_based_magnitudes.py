@@ -62,12 +62,12 @@ def amplitude_based_relative_magnitude(st_event, event):
     Q = 76.0  # Quality factor [] introduced by Hansruedi Maurer (Email 29.07.2021)
     V_P = 5100.0  # P-wave velocity [m/s]
     r_0 = 10.0  # reference distance [m]
-    ### For amplitude
+    # ## For amplitude
     p_amp = []
     n_amp = []
     t_window = []
     distances = []
-    ### For magnitude
+    # ## For magnitude
     s_m = []
     Mr_station = []
 
