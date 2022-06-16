@@ -6,6 +6,7 @@
 
 * `Python >= 3.7`
 * `click`
+* `joblib`
 * `numba`
 * `numpy`
 * `obspy`

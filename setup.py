@@ -28,6 +28,7 @@ _authors_email = ["linus.villiger@sed.ethz.ch", "joseph.doetsch@erdw.ethz.ch"]
 
 _install_requires = [
     "click",
+    "joblib",
     "matplotlib",
     "numba",
     "numpy",
@@ -45,7 +46,7 @@ _install_requires = [
 
 setup(
     name="DUG-Seis",
-    version="0.1",
+    version="0.2",
     author=" (SCCER-SoE, SED, ETHZ),".join(_authors),
     author_email=", ".join(_authors_email),
     description=(
