@@ -48,13 +48,17 @@ def amplitude_based_relative_magnitude(st_event, event):
     signal_copy = st_event.copy()
     noise_copy = st_event.copy()
     gainLogAE = 100  # 10dB + 30dB
-    gainAE = 1. / gainLogAE
-    Count2VoltAE = 10. / 32000  # 10V on 32000 samples
-    conversion_factor_counts_mV = gainAE * Count2VoltAE  # assuming 64'000 (not 2**16 = 65536) counts
+    gainAE = 1.0 / gainLogAE
+    Count2VoltAE = 10.0 / 32000  # 10V on 32000 samples
+    conversion_factor_counts_mV = (
+        gainAE * Count2VoltAE
+    )  # assuming 64'000 (not 2**16 = 65536) counts
     # resolution per +/-10V (direct communication by GMuG) as well as 30dB pre-amplification
     # and 10 dB amplification from the supply/filter unit
     # Magnitude determination per station
-    f_0 = (filter_freq_max - filter_freq_min) / 2 + filter_freq_min  # dominant frequency [Hz]
+    f_0 = (
+        filter_freq_max - filter_freq_min
+    ) / 2 + filter_freq_min  # dominant frequency [Hz]
     Q = 76.0  # Quality factor [] introduced by Hansruedi Maurer (Email 29.07.2021)
     V_P = 5100.0  # P-wave velocity [m/s]
     r_0 = 10.0  # reference distance [m]
@@ -68,8 +72,26 @@ def amplitude_based_relative_magnitude(st_event, event):
     Mr_station = []
 
     count = 0
-    for index, pick in enumerate(event.picks):
-        dist = event.origins[0].arrivals[index].distance  # get distances
+    tmpPicks = event.picks
+    if len(tmpPicks) > len(event.preferred_origin().arrivals):
+        idx = [i for i, x in enumerate(tmpPicks) if x.evaluation_mode == "manual"]
+        PicksManual = [tmpPicks[x].waveform_id for x in idx]
+        idx2 = [
+            i
+            for i, x in enumerate(tmpPicks)
+            if x.waveform_id in PicksManual and x.evaluation_mode == "automatic"
+        ]
+        PickDouble = [tmpPicks[x].waveform_id for x in idx2]
+        Picks = [
+            x
+            for x in tmpPicks
+            if x.waveform_id not in PickDouble or x.evaluation_mode == "manual"
+        ]
+    else:
+        Picks = tmpPicks
+
+    for index, pick in enumerate(Picks):
+        dist = event.preferred_origin().arrivals[index].distance  # get distances
         s_arrival = event.preferred_origin().time + (
             dist / s_wave_velocity
         )  # calc. theoretical s-wave arrival
@@ -160,10 +182,10 @@ def amplitude_based_relative_magnitude(st_event, event):
                 unit="other",
                 snr=p_amp[count] / n_amp[count],
                 waveform_id=WaveformStreamID(
-                    network_code=st_event[index].stats.network,
-                    station_code=st_event[index].stats.station,
-                    location_code=st_event[index].stats.location,
-                    channel_code=st_event[index].stats.channel,
+                    network_code=pick.waveform_id.network_code,
+                    station_code=pick.waveform_id.station_code,
+                    location_code=pick.waveform_id.location_code,
+                    channel_code=pick.waveform_id.channel_code,
                 ),
                 time_window=TimeWindow(
                     begin=t_window[count].begin,
@@ -172,60 +194,46 @@ def amplitude_based_relative_magnitude(st_event, event):
                 ),
             )
         )
-        count += 1
-    if (
-        len(event.amplitudes) < 1
-    ):  # if les than two amplitudes are assigned return from the definition
-        delattr(event, "amplitudes")
-        return event
 
-    # Magnitude determination per station
-    f_0 = (
-        filter_freq_max - filter_freq_min
-    ) / 2 + filter_freq_min  # dominant frequency [Hz]
-    Q = 76.0  # Quality factor [] introduced by Hansruedi Maurer (Email 29.07.2021)
-    V_P = 5400.0  # P-wave velocity [m/s]
-    r_0 = 10.0  # reference distance [m]
-    Grimsel_factor = 4.0  # determined Grimsel factor
-
-    s_m = []
-    Mr_station = []
-    for index, amplitudes in enumerate(event.amplitudes):
-        # distance source receiver
-        dist = distances[index]
-        # correction for attenuation
         corr_fac_1 = np.exp(np.pi * (dist - r_0) * f_0 / (Q * V_P))
         # correction for geometrical spreading
         corr_fac_2 = dist / r_0
         # station magnitude computation
-        Mr_station.append(
-            np.log10(amplitudes.generic_amplitude * corr_fac_2 * corr_fac_1)
-        )
+        if p_amp[count] == 0:
+            continue
+        tmpMrSta = np.log10(p_amp[count] * corr_fac_2 * corr_fac_1)
+        Mr_station.append(tmpMrSta)
         # append station magnitude to event
         event.station_magnitudes.append(
             StationMagnitude(
                 resource_id=f"station_magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
                 origin_id=event.preferred_origin_id.id,
-                mag=Mr_station[index] - Grimsel_factor,
+                mag=0.52 * tmpMrSta - 4.46,
                 station_magnitude_type="Mb",
-                amplitude_id=event.amplitudes[index].resource_id,
+                amplitude_id=event.amplitudes[count].resource_id,
             )
         )
         # store station magnitude contribution
         s_m.append(
             StationMagnitudeContribution(
                 station_magnitude_id="smi:local/"
-                + event.station_magnitudes[index].resource_id.id,
+                + event.station_magnitudes[count].resource_id.id,
                 weight=1 / len(event.amplitudes),
             )
         )
+
+        count += 1
+
+    if not event.amplitudes:  # if no amplitudes are assigned return from the definition
+        delattr(event, "amplitudes")
+        return event
+
     Mr_station = np.array(Mr_station)
-    Mr_network = np.log10(
-        np.sqrt(np.sum((10**Mr_station) ** 2) / len(Mr_station))
-    )  # network magnitude
+    # Mr_network = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))  # network magnitude
+    Mr_network = np.sum(Mr_station) / len(Mr_station)  # network magnitude
     MA_network = (
-        Mr_network - Grimsel_factor
-    )  # correction with Grimsel adjustment factor
+        0.52 * Mr_network - 4.46
+    )  # temporary relation deduced from VALTER Stimulaiton1, using individual stations estimations
 
     # Create network magnitude and add station magnitude contribution
     m = Magnitude(
@@ -243,4 +251,3 @@ def amplitude_based_relative_magnitude(st_event, event):
     # f"Network magnitude successfully computed: MA{MA_network:.2f}")
 
     return event
-
