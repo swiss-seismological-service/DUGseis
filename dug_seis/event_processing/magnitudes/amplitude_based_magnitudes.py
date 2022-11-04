@@ -36,7 +36,7 @@ def is_time_between(begin_time, end_time, check_time):
 
 def amplitude_based_relative_magnitude(st_event, event):
     # main parameters for magnitude processing
-    s_wave_velocity = 3100  # [m/s]
+    V_S = 3100.  # [m/s]
     filter_freq_min = 3e3  # [Hz]
     filter_freq_max = 12e3  # [Hz]
     filter_corners = 4
@@ -76,12 +76,13 @@ def amplitude_based_relative_magnitude(st_event, event):
 
     for index, pick in enumerate(Picks):
         dist = event.preferred_origin().arrivals[index].distance  # get distances
-        s_arrival = event.preferred_origin().time + (dist / s_wave_velocity)  # calc. theoretical s-wave arrival
-        delta_p_s = s_arrival - pick.time  # time between s-arrival and p-pick
-        signal_window_start_time = pick.time - delta_p_s
+        # s_arrival = event.preferred_origin().time + (dist / s_wave_velocity)  # calc. theoretical s-wave arrival
+        # delta_p_s = s_arrival - pick.time  # time between s-arrival and p-pick
+        delta_p_s = dist / V_S - dist / V_P
+        signal_window_start_time = pick.time - 0.5 * delta_p_s
         signal_window_end_time = pick.time + delta_p_s
-        noise_window_start_time = pick.time - 2*delta_p_s
-        noise_window_end_time = pick.time
+        noise_window_start_time = pick.time - 2.5*delta_p_s
+        noise_window_end_time = pick.time - 0.5 * delta_p_s
 
         # magnitude computation is omitted when delta_p_s or signal/noise windows are not within the st_event time
         # interval
@@ -115,13 +116,17 @@ def amplitude_based_relative_magnitude(st_event, event):
                              corners=filter_corners, zerophase=filter_zerophase)
         noise_95pers = np.percentile(np.abs(noise.data), 95)  # take 95 % percentile to omit outliers
         n_amp.append(noise_95pers * conversion_factor_counts_mV)
+        if n_amp[count]!=0:
+            SNR = p_amp[count] / n_amp[count]
+        else:
+            SNR = 0
 
         event.amplitudes.append(
             Amplitude(resource_id=f"amplitude/p_wave/{uuid.uuid4()}",
                       generic_amplitude=p_amp[count],
                       type='AMB',
                       unit='other',
-                      snr=p_amp[count] / n_amp[count],
+                      snr=SNR,
                       waveform_id=WaveformStreamID(network_code=pick.waveform_id.network_code,
                                                    station_code=pick.waveform_id.station_code,
                                                    location_code=pick.waveform_id.location_code,
@@ -142,7 +147,7 @@ def amplitude_based_relative_magnitude(st_event, event):
         event.station_magnitudes.append(
             StationMagnitude(resource_id=f"station_magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
                              origin_id=event.preferred_origin_id.id,
-                             mag=0.52 * tmpMrSta - 4.46,
+                             mag= -2.24 + 0.65 * tmpMrSta,
                              station_magnitude_type='Mb',
                              amplitude_id=event.amplitudes[count].resource_id))
         # store station magnitude contribution
@@ -161,7 +166,7 @@ def amplitude_based_relative_magnitude(st_event, event):
     Mr_station = np.array(Mr_station)
     # Mr_network = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))  # network magnitude
     Mr_network = np.sum(Mr_station) / len(Mr_station) # network magnitude
-    MA_network = 0.52*Mr_network-4.46  # temporary relation deduced from VALTER Stimulaiton1, using individual stations estimations
+    MA_network = -2.24 + 0.65 * Mr_network  # temporary relation deduced from VALTER Stimulaiton1, using individual stations estimations
 
     # Create network magnitude and add station magnitude contribution
     m = Magnitude(resource_id=f"magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
