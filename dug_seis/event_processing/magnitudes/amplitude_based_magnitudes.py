@@ -40,7 +40,7 @@ def is_time_between(begin_time, end_time, check_time):
 
 def amplitude_based_relative_magnitude(st_event, event):
     # main parameters for magnitude processing
-    s_wave_velocity = 3100  # [m/s]
+    V_S = 3100.  # [m/s]
     filter_freq_min = 3e3  # [Hz]
     filter_freq_max = 12e3  # [Hz]
     filter_corners = 4
@@ -48,58 +48,45 @@ def amplitude_based_relative_magnitude(st_event, event):
     signal_copy = st_event.copy()
     noise_copy = st_event.copy()
     gainLogAE = 100  # 10dB + 30dB
-    gainAE = 1.0 / gainLogAE
-    Count2VoltAE = 10.0 / 32000  # 10V on 32000 samples
-    conversion_factor_counts_mV = (
-        gainAE * Count2VoltAE
-    )  # assuming 64'000 (not 2**16 = 65536) counts
+    gainAE = 1. / gainLogAE
+    Count2VoltAE = 10. / 32000  # 10V on 32000 samples
+    conversion_factor_counts_mV = gainAE * Count2VoltAE  # assuming 64'000 (not 2**16 = 65536) counts
     # resolution per +/-10V (direct communication by GMuG) as well as 30dB pre-amplification
     # and 10 dB amplification from the supply/filter unit
     # Magnitude determination per station
-    f_0 = (
-        filter_freq_max - filter_freq_min
-    ) / 2 + filter_freq_min  # dominant frequency [Hz]
+    f_0 = (filter_freq_max - filter_freq_min) / 2 + filter_freq_min  # dominant frequency [Hz]
     Q = 76.0  # Quality factor [] introduced by Hansruedi Maurer (Email 29.07.2021)
     V_P = 5100.0  # P-wave velocity [m/s]
     r_0 = 10.0  # reference distance [m]
-    # ## For amplitude
+    ### For amplitude
     p_amp = []
     n_amp = []
     t_window = []
     distances = []
-    # ## For magnitude
+    ### For magnitude
     s_m = []
     Mr_station = []
 
     count = 0
     tmpPicks = event.picks
-    if len(tmpPicks) > len(event.preferred_origin().arrivals):
-        idx = [i for i, x in enumerate(tmpPicks) if x.evaluation_mode == "manual"]
+    if len(tmpPicks)>len(event.preferred_origin().arrivals):
+        idx = [i for i,x in enumerate(tmpPicks) if x.evaluation_mode=='manual']
         PicksManual = [tmpPicks[x].waveform_id for x in idx]
-        idx2 = [
-            i
-            for i, x in enumerate(tmpPicks)
-            if x.waveform_id in PicksManual and x.evaluation_mode == "automatic"
-        ]
+        idx2 = [i for i,x in enumerate(tmpPicks) if x.waveform_id in PicksManual and x.evaluation_mode=='automatic']
         PickDouble = [tmpPicks[x].waveform_id for x in idx2]
-        Picks = [
-            x
-            for x in tmpPicks
-            if x.waveform_id not in PickDouble or x.evaluation_mode == "manual"
-        ]
+        Picks = [x for x in tmpPicks if x.waveform_id not in PickDouble or x.evaluation_mode=='manual']
     else:
         Picks = tmpPicks
 
     for index, pick in enumerate(Picks):
         dist = event.preferred_origin().arrivals[index].distance  # get distances
-        s_arrival = event.preferred_origin().time + (
-            dist / s_wave_velocity
-        )  # calc. theoretical s-wave arrival
-        delta_p_s = s_arrival - pick.time  # time between s-arrival and p-pick
-        signal_window_start_time = pick.time - delta_p_s
+        # s_arrival = event.preferred_origin().time + (dist / s_wave_velocity)  # calc. theoretical s-wave arrival
+        # delta_p_s = s_arrival - pick.time  # time between s-arrival and p-pick
+        delta_p_s = dist / V_S - dist / V_P
+        signal_window_start_time = pick.time - 0.5 * delta_p_s
         signal_window_end_time = pick.time + delta_p_s
-        noise_window_start_time = pick.time - 2 * delta_p_s
-        noise_window_end_time = pick.time
+        noise_window_start_time = pick.time - 2.5*delta_p_s
+        noise_window_end_time = pick.time - 0.5 * delta_p_s
 
         # magnitude computation is omitted when delta_p_s or signal/noise windows are not within the st_event time
         # interval
@@ -173,67 +160,57 @@ def amplitude_based_relative_magnitude(st_event, event):
             np.abs(noise.data), 95
         )  # take 95 % percentile to omit outliers
         n_amp.append(noise_95pers * conversion_factor_counts_mV)
+        if n_amp[count]!=0:
+            SNR = p_amp[count] / n_amp[count]
+        else:
+            SNR = 0
 
         event.amplitudes.append(
-            Amplitude(
-                resource_id=f"amplitude/p_wave/{uuid.uuid4()}",
-                generic_amplitude=p_amp[count],
-                type="AMB",
-                unit="other",
-                snr=p_amp[count] / n_amp[count],
-                waveform_id=WaveformStreamID(
-                    network_code=pick.waveform_id.network_code,
-                    station_code=pick.waveform_id.station_code,
-                    location_code=pick.waveform_id.location_code,
-                    channel_code=pick.waveform_id.channel_code,
-                ),
-                time_window=TimeWindow(
-                    begin=t_window[count].begin,
-                    end=t_window[count].end,
-                    reference=t_window[count].reference,
-                ),
-            )
-        )
+            Amplitude(resource_id=f"amplitude/p_wave/{uuid.uuid4()}",
+                      generic_amplitude=p_amp[count],
+                      type='AMB',
+                      unit='other',
+                      snr=SNR,
+                      waveform_id=WaveformStreamID(network_code=pick.waveform_id.network_code,
+                                                   station_code=pick.waveform_id.station_code,
+                                                   location_code=pick.waveform_id.location_code,
+                                                   channel_code=pick.waveform_id.channel_code),
+                      time_window=TimeWindow(begin=t_window[count].begin, end=t_window[count].end,
+                                             reference=t_window[count].reference)))
+
 
         corr_fac_1 = np.exp(np.pi * (dist - r_0) * f_0 / (Q * V_P))
         # correction for geometrical spreading
         corr_fac_2 = dist / r_0
         # station magnitude computation
-        if p_amp[count] == 0:
+        if p_amp[count]==0:
             continue
         tmpMrSta = np.log10(p_amp[count] * corr_fac_2 * corr_fac_1)
         Mr_station.append(tmpMrSta)
         # append station magnitude to event
         event.station_magnitudes.append(
-            StationMagnitude(
-                resource_id=f"station_magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
-                origin_id=event.preferred_origin_id.id,
-                mag=0.52 * tmpMrSta - 4.46,
-                station_magnitude_type="Mb",
-                amplitude_id=event.amplitudes[count].resource_id,
-            )
-        )
+            StationMagnitude(resource_id=f"station_magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
+                             origin_id=event.preferred_origin_id.id,
+                             mag= -2.24 + 0.65 * tmpMrSta,
+                             station_magnitude_type='Mb',
+                             amplitude_id=event.amplitudes[count].resource_id))
         # store station magnitude contribution
         s_m.append(
             StationMagnitudeContribution(
-                station_magnitude_id="smi:local/"
-                + event.station_magnitudes[count].resource_id.id,
-                weight=1 / len(event.amplitudes),
-            )
-        )
+                station_magnitude_id="smi:local/" + event.station_magnitudes[count].resource_id.id,
+                weight=1 / len(event.amplitudes)))
 
-        count += 1
+        count+=1
 
     if not event.amplitudes:  # if no amplitudes are assigned return from the definition
-        delattr(event, "amplitudes")
+        delattr(event, 'amplitudes')
         return event
+
 
     Mr_station = np.array(Mr_station)
     # Mr_network = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))  # network magnitude
-    Mr_network = np.sum(Mr_station) / len(Mr_station)  # network magnitude
-    MA_network = (
-        0.52 * Mr_network - 4.46
-    )  # temporary relation deduced from VALTER Stimulaiton1, using individual stations estimations
+    Mr_network = np.sum(Mr_station) / len(Mr_station) # network magnitude
+    MA_network = -2.24 + 0.65 * Mr_network  # temporary relation deduced from VALTER Stimulaiton1, using individual stations estimations
 
     # Create network magnitude and add station magnitude contribution
     m = Magnitude(
