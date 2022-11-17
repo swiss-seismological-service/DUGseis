@@ -19,10 +19,10 @@ local_coordinate_system:
 paths:
   # A list of folders with the waveform files as ASDF files.
   asdf_folders:
-    - '/bedrettolab/waveforms/raw/continuous-01-bedretto/2021/280'
-    - '/bedrettolab/waveforms/raw/continuous-02-bedretto/2021/280'
-    - '/bedrettolab/waveforms/raw/continuous-03-bedretto/2021/280'
-    - '/bedrettolab/waveforms/raw/continuous-04-bedretto/2021/280'
+    - '/bedrettolab/E2_waveforms/waveforms/raw/continuous-01-bedretto/2022/61'
+    - '/bedrettolab/E2_waveforms/waveforms/raw/continuous-02-bedretto/2022/61'
+    - '/bedrettolab/E2_waveforms/waveforms/raw/continuous-03-bedretto/2022/61'
+    - '/bedrettolab/E2_waveforms/waveforms/raw/continuous-04-bedretto/2022/61'
   # Folder with the corresponding StationXML files.
   stationxml_folders:
     - '/home/vlinus/auxiliary_data_DUGSeis/stations/XMLFiles_LocV0_after22ndSeptember2021/stationXML_conti01'
@@ -37,8 +37,8 @@ paths:
 # Temporal range of the experiment. All parts of DUGSeis will only use data in
 # that range.
 temporal_range:
-  start_time: 2021-10-07T15:44:12.000000Z
-  end_time: 2021-10-07T15:44:13.000000Z
+  start_time: 2022-03-02T10:50:00.000000Z
+  end_time: 2022-03-02T10:55:00.000000Z
 
 # Some settings affecting the graphical interface.
 graphical_interface:
