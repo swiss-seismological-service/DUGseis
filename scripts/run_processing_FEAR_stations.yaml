@@ -1,0 +1,73 @@
+# File format version number.
+version: 14
+
+# Meta information. Does not influence any functionality.
+meta:
+  project_name: Riik project
+  project_location: Bedretto
+  project_description: Riik's intro
+
+local_coordinate_system:
+  # EPSG code of the local coordinate system.
+  epsg_code: 2056
+  # Translation vector to convert local coordinates to the coordinate system
+  # specified by the EPSG code. Thus the internal local coordinate system is a
+  # translated system.
+  translation_vector: [2679720.696, 1151600.128, 1480.000]
+
+# Where things are on disc.
+paths:
+  # A list of folders with the waveform files as ASDF files.
+  asdf_folders:
+    - '/bedrettolab/E2_waveforms/waveforms/raw/continuous-01-bedretto/2022/324'
+  # Folder with the corresponding StationXML files.
+  stationxml_folders:
+    - '/home/ribasu/auxiliary_data_DUGSeis/stationXMLs/conti01'
+  # Path to the SQLite database storing everything.
+  database: 'sqlite:///home/vlinus/auxiliary_data_DUGSeis/database/db3.sqlite'
+  # Cache folder - can be safely deletes but might be expensive to recompute.
+  cache_folder: '/home/vlinus/auxiliary_data_DUGSeis/cach' #'/home/ribasu/auxiliary_data_DUGSeis/cach'
+
+# Temporal range of the experiment. All parts of DUGSeis will only use data in
+# that range.
+temporal_range:
+  start_time: 2022-11-20T10:50:00.000000Z
+  end_time: 2022-11-20T10:51:00.000000Z
+
+# Some settings affecting the graphical interface.
+graphical_interface:
+  # Available options for manual event classifications.
+  classifications:
+    - passive
+    - active
+    - electronic
+    - unknown
+    - random
+  # Available manual phases for picks.
+  pick_types:
+    - P
+    - S
+  # List of available uncertainties.
+  uncertainties_in_ms:
+    - 0.00001
+    - 0.000025
+    - 0.00005
+
+# Available filters - either in the GUI or for any automatic picking
+# algorithms. The filter will be applied and the corresponding processing
+# id will be stored alongside the picks.
+filters:
+  - filter_id: smi:local/bandpass_causal
+    filter_settings:
+      filter_type: butterworth_bandpass
+      highpass_frequency_in_hz: 1000.0
+      lowpass_frequency_in_hz: 5000.0
+      filter_corners: 4
+      zerophase: false
+  - filter_id: smi:local/bandpass_acausal
+    filter_settings:
+      filter_type: butterworth_bandpass
+      highpass_frequency_in_hz: 1000.0
+      lowpass_frequency_in_hz: 5000.0
+      filter_corners: 2
+      zerophase: true

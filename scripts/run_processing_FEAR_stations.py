@@ -22,8 +22,9 @@ from dug_seis.event_processing.magnitudes.amplitude_based_magnitudes import (
 )
 from dug_seis.plotting.plotting import (
     plot_waveform_characteristic_function_magnitude,
+    plot_time_waveform,
+    plot_waveform_characteristic_function,
 )
-
 
 # The logging is optional, but useful.
 util.setup_logging_to_file(
@@ -35,7 +36,7 @@ util.setup_logging_to_file(
 logger = logging.getLogger(__name__)
 
 # Load the DUGSeis project.
-project = DUGSeisProject(config="run_processing_incl_REC_MA_determination.yaml")
+project = DUGSeisProject(config="run_processing_FEAR_stations.yaml")
 
 # Helper function to compute intervals over the project.
 intervals = util.compute_intervals(
@@ -48,29 +49,41 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
     # Run the trigger only on a few waveforms.
     st_triggering = project.waveforms.get_waveforms(
         channel_ids=[
-            "XB.02.01.001",
-            "XB.02.03.001",
-            "XB.02.10.001",
-            "XB.04.01.001",
-            "XB.04.02.001",
-            "XB.03.12.001",
-            "XB.03.15.001",
+            "XB.01.01.001",
+            "XB.01.02.001",
+            "XB.01.03.001",
+            "XB.01.04.001",
+            "XB.01.05.001",
+            "XB.01.06.001",
+            "XB.01.07.001",
+            "XB.01.08.001",
         ],
         start_time=interval_start,
         end_time=interval_end,
     )
 
+    # Get noise levels, standard obspy
+    st_triggering.plot()
+
+    # custom plotting incl. characteristic function
+    fig_waveform_cf = plot_waveform_characteristic_function(st_triggering, 70, 700)
+    fig_waveform_cf.show()
+
+    input(
+        "Hi Riik, let's discuss further steps as soon as you arrive here...  Cheers, Linus"
+        )
+
     # Standard DUGSeis trigger.
     detected_events = dug_trigger(
         st=st_triggering,
         # Helps with classification.
-        active_triggering_channel="XB.01.01.001",
+        active_triggering_channel="XB.01.09.001",
         minimum_time_between_events_in_seconds=0.015,
         max_spread_electronic_interference_in_seconds=2e-5,
         # Passed on the coincidence trigger.
         conincidence_trigger_opts={
             "trigger_type": "recstalta",
-            "thr_on": 3.8,
+            "thr_on": 2.5,
             "thr_off": 2.0,
             "thr_coincidence_sum": 2,
             # The time windows are given in seconds.
@@ -88,8 +101,6 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
 
     if not detected_events:
         continue
-    else:
-        x = 2
 
     # Now loop over the detected events.
     added_event_count = 0
@@ -102,13 +113,14 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
             # All but the first because that is the active triggering channel
             # here.
             channel_ids=[
-                "XB.02.01.001",
-                "XB.02.03.001",
-                "XB.02.10.001",
-                "XB.04.01.001",
-                "XB.04.02.001",
-                "XB.03.12.001",
-                "XB.03.15.001",
+                "XB.01.01.001",
+                "XB.01.02.001",
+                "XB.01.03.001",
+                "XB.01.04.001",
+                "XB.01.05.001",
+                "XB.01.06.001",
+                "XB.01.07.001",
+                "XB.01.08.001",
             ],
             start_time=event_candidate["time"] - 5e-3,
             end_time=event_candidate["time"] + 35e-3,
@@ -168,17 +180,6 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
             damping=0.01,
             local_to_global_coordinates=project.local_to_global_coordinates,
         )
-
-        # get magnitude
-        event = amplitude_based_relative_magnitude(st_event, event)
-
-        # plot magnitude figure if magnitude computed
-        if event.magnitudes:
-            fig = plot_waveform_characteristic_function_magnitude(
-                st_event, st_window, lt_window, tr_on, tr_off, event
-            )
-            fig.set_size_inches(11.69, 8.27)
-            fig.show()
 
         # Write the classification as a comment.
         event.comments = [
