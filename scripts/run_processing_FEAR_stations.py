@@ -2,6 +2,7 @@
 Example processing script.
 """
 import logging
+from obspy import UTCDateTime
 
 import obspy
 import tqdm
@@ -42,6 +43,8 @@ project = DUGSeisProject(config="run_processing_FEAR_stations.yaml")
 intervals = util.compute_intervals(
     project=project, interval_length_in_seconds=5, interval_overlap_in_seconds=0.1
 )
+project.config['temporal_range']['start_time'] = UTCDateTime('2022-11-20T10:50:00.000000Z')
+project.config['temporal_range']['end_time'] = UTCDateTime('2022-11-20T10:50:30.000000Z')
 
 total_event_count = 0
 

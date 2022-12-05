@@ -22,95 +22,40 @@ import matplotlib.pyplot as plt
 from obspy.signal.trigger import recursive_sta_lta
 
 
-def fft_amp(stream):
-    """
-    Performs Fast Fourier Transform on traces in stream
-    """
-    time = get_time_vector(stream) / 1000  # in seconds
-    # fig = plt.figure(constrained_layout=False)
-    # gspec = fig.add_gridspec(nrows=len(stream), ncols=1, left=0.08, right=0.95,
-    # wspace=0, hspace=0)
-    plt.figure(figsize=(11.69 / 2, 8.27 / 2))
-    Y = np.empty((0, int(len(stream.traces[0]) / 2 + 1)), dtype=float)
-    N = int(len(stream.traces[0]) / 2 + 1)
-    dt = time[1] - time[0]
-    fa = 1.0 / dt
-    for index, trace in enumerate(stream.traces):
-        data = np.multiply(trace.data, 10000 / 32000)
-        data = data - np.mean(data)
-        hann = np.hanning(len(data))
+def nextpow2(N):
+    """ Function for finding the next power of 2 """
+    n = 1
+    while n < N: n *= 2
+    return n
 
-        # FFT
-        Yhann = np.fft.fft(hann * data)
-        Y = np.append(Y, np.array([2.0 * np.abs(Yhann[:N]) / N]), axis=0)
 
-    X = np.linspace(0, fa / 2, N, endpoint=True)
-    # y_label = '{0}.{1}.{2}.{3}'.format(trace.stats.network,
-    #                                     trace.stats.station,
-    #                                     trace.stats.location,
-    #                                     trace.stats.channel)
-    # plt.plot(X, 2.0 * np.abs(Yhann[:N]) / N, linewidth=0.75, zorder=8, label=y_label)
-    # plt.yscale('log')
-    # plt.grid()
-    # plt.legend(loc='lower right')
-    # plt.xlim([50, 50000])
-    # plt.ylim([10**-8, 10**-1])
-    # plt.ylabel("$log_{10}(A)$ [mV/Hz]")
-    # plt.xlabel("frequency [Hz]")
+def cm_to_inch(value):
+    return value/2.54
 
-    return X, Y
 
-    # plt.subplot(122)
-    # plt.plot(X, 2.0 * np.abs(Yhann[:N]) / N)
-    # plt.tight_layout()
-    # plt.yscale('log')
-    # plt.show()
-    # x = 2
+def amp_fft(signal, sampling_rate, pad=1, window=False, resample_log=False):
+    """ Function to get single sided fft"""
+    signal = signal - np.mean(signal)  # detrend
+    hann = np.hanning(len(signal))
+    total_length_signal = nextpow2(len(signal) * pad)
 
-    # t = np.linspace(0, 1, 10000, endpoint=True)
-    # f = 20  # Frequency in Hz
-    # A = 100.0  # Amplitude in Unit
-    # s = A * np.sin(2 * np.pi * f * t)  # Signal
+    if window is True:
+        signal_fft = np.fft.fft(signal * hann, n=total_length_signal)
+    elif window is False:
+        signal_fft = np.fft.fft(signal, n=total_length_signal)
 
-    # plot time domain
-    # plt.figure(figsize=(7, 3))
-    # plt.subplot(121)
-    # hann = np.hanning(len(s))
-    # plt.plot(t, s)
-    # plt.title('Time Domain Signal')
-    # plt.ylim(np.min(s) * 3, np.max(s) * 3)
-    # plt.xlabel('Time ($s$)')
-    # plt.ylabel('Amplitude ($Unit$)')
-    #
-    # # FFT
-    # dt = t[1] - t[0]
-    # fa = 1.0 / dt
-    #
-    # # s = np.pad(s, (5000, 0), mode='constant') #zero pad
-    # hann = np.hanning(len(s))
-    # Yhann = np.fft.fft(hann * s)
-    # # Yhann = np.fft.fft(s)
-    # corr = 1.63
-    # Y = np.fft.fft(s)
-    # N = int(len(Y) / 2 + 1)
-    # X = np.linspace(0, fa / 2, N, endpoint=True)
-    #
-    #
-    # plt.subplot(122)
-    # plt.plot(X, 2.0 * np.abs(Yhann[:N]) / N)
-    # plt.title('Frequency Domain Signal')
-    # plt.xlabel('Frequency ($Hz$)')
-    # plt.ylabel('Amplitude ($Unit$)')
-    # plt.xlim(0, f*2)
-    #
-    # plt.annotate("FFT",
-    #              xy=(0.0, 0.1), xycoords='axes fraction',
-    #              xytext=(-0.8, 0.2), textcoords='axes fraction',
-    #              size=30, va="center", ha="center",
-    #              arrowprops=dict(arrowstyle="simple",
-    #                              connectionstyle="arc3,rad=0.2"))
-    # plt.tight_layout()
-    # plt.show()
+    signal_fft = signal_fft[0:int(total_length_signal / 2 + 1)]
+    signal_fft = signal_fft / len(signal)  # normalise
+    signal_fft[1:-1] = signal_fft[1:-1] * 2  # single sided, that is why times two
+    freq = np.arange(0, sampling_rate / 2 + sampling_rate / total_length_signal, sampling_rate / total_length_signal)
+    res = freq[1:2][0]
+
+    if resample_log:
+        freq_int = np.logspace(0.1, 5, num=10000)
+        signal_fft_interp = np.interp(freq_int, freq, signal_fft, left=None, right=None, period=None)
+        return signal_fft_interp, freq_int, res
+    else:
+        return signal_fft, freq, res
 
 
 def get_time_vector(stream):
@@ -184,10 +129,10 @@ def plot_time_waveform(stream, markers="no"):
     for index, trace in enumerate(stream.traces):
         ax = fig.add_subplot(gspec[index, col])
         # plot data * 10000 / 32000 mV
-        if "XB.01" in trace.id:
-            data = np.multiply(trace.data, 50 / 2**16)
-        else:
-            data = np.multiply(trace.data, 10000 / 2**16)
+        # if "XB.01" in trace.id:
+        #     data = np.multiply(trace.data, 50 / 2**16)
+        # else:
+        #     data = np.multiply(trace.data, 10000 / 2**16)
         # elif trace.id == 'XB.01.16.001' or trace.id == 'XB.01.24.001':
         #     data = np.multiply(trace.data, 100 / 2 ** 16)
         # elif trace.id == 'XB.01.17.001' or trace.id == 'XB.01.25.001':
@@ -202,9 +147,9 @@ def plot_time_waveform(stream, markers="no"):
         #     data = np.multiply(trace.data, 5000 / 2 ** 16)
         # else:
         #     data = np.multiply(trace.data, 10000 / 2**16)
-
-        data = data - np.mean(data)
-        ax_plot_x_y_data(ax, time, data, unit_pa="mV", markers=markers)
+        data = trace.data
+        # data = data - np.mean(data)
+        ax_plot_x_y_data(ax, time, data, unit_pa="counts", markers=markers)
 
         # Percentiles
         # p = np.percentile(data, 95)
