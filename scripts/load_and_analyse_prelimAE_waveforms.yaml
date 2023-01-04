@@ -19,20 +19,21 @@ local_coordinate_system:
 paths:
   # A list of folders with the waveform files as ASDF files.
   asdf_folders:
-    - '/bedrettolab/E2_waveforms/waveforms/raw/continuous-01-bedretto/2022/324'
+    - '/bedrettolab/E2_waveforms/waveforms/raw/continuous-01-bedretto/2022/341'
+  #  - '/bedrettolab/E2_waveforms/waveforms/raw/continuous-01-bedretto/2022/324'
   # Folder with the corresponding StationXML files.
   stationxml_folders:
-    - '/home/ribasu/auxiliary_data_DUGSeis/stationXMLs/conti01'
+    - '/home/memeier/data/project/bedretto/DUGseis/stationXMLs/conti01'
   # Path to the SQLite database storing everything.
-  database: 'sqlite:///home/vlinus/auxiliary_data_DUGSeis/database/db3.sqlite'
+  database: 'sqlite:///home/memeier/data/project/bedretto/DUGseis/database/db3.sqlite'
   # Cache folder - can be safely deletes but might be expensive to recompute.
-  cache_folder: '/home/vlinus/auxiliary_data_DUGSeis/cach' #'/home/ribasu/auxiliary_data_DUGSeis/cach'
+  cache_folder: '/home/memeier/data/project/bedretto/DUGseis/cache' #'/home/ribasu/auxiliary_data_DUGSeis/cach'
 
 # Temporal range of the experiment. All parts of DUGSeis will only use data in
 # that range.
 temporal_range:
-  start_time: 2022-11-20T10:50:00.000000Z
-  end_time: 2022-11-20T10:51:00.000000Z
+  start_time: 2022-12-07T12:00:00.000000Z
+  end_time: 2022-12-07T12:00:05.000000Z
 
 # Some settings affecting the graphical interface.
 graphical_interface:

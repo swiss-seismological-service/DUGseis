@@ -2,11 +2,10 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-
 from scipy import signal
-from scipy.fft import fftshift
-import matplotlib.pyplot as plt
+#from scipy.fft import fftshift
 rng = np.random.default_rng()
+
 
 # Generate random signal
 fs = 10e3
@@ -21,10 +20,20 @@ noise *= np.exp(-time/5)
 x = carrier + noise
 
 # Use loaded seismogram instead
-tr = st_triggering[1]
+st0 = st_triggering.copy()
+tr = st0[1]
+print(tr.stats)
+tr.plot()
+
+dt = tr.stats.starttime
+print(dt)
+tr.trim(dt, dt + 0.01)
+print(tr.stats)
+
+
+
 x = tr.data
 print(x)
-print(tr.stats)
 fs = np.round(tr.stats.sampling_rate)
 
 # Plot spectrogram
