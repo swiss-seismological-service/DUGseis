@@ -113,8 +113,8 @@ def amplitude_based_relative_magnitude(st_event, event):
                 noise_window_end_time,
             )
         ):
-
-            continue
+            print('Possible error')
+            #continue
 
         distances.append(
             dist
@@ -191,8 +191,8 @@ def amplitude_based_relative_magnitude(st_event, event):
         event.station_magnitudes.append(
             StationMagnitude(resource_id=f"station_magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
                              origin_id=event.preferred_origin_id.id,
-                             mag= -2.24 + 0.65 * tmpMrSta,
-                             station_magnitude_type='Mb',
+                             mag= -2.25 + 0.66 * tmpMrSta,
+                             station_magnitude_type='MwA',
                              amplitude_id=event.amplitudes[count].resource_id))
         # store station magnitude contribution
         s_m.append(
@@ -210,13 +210,13 @@ def amplitude_based_relative_magnitude(st_event, event):
     Mr_station = np.array(Mr_station)
     # Mr_network = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))  # network magnitude
     Mr_network = np.sum(Mr_station) / len(Mr_station) # network magnitude
-    MA_network = -2.24 + 0.65 * Mr_network  # temporary relation deduced from VALTER Stimulaiton1, using individual stations estimations
+    MA_network = -2.25 + 0.66 * Mr_network  # temporary relation deduced from VALTER Stimulaiton1, using individual stations estimations
 
     # Create network magnitude and add station magnitude contribution
     m = Magnitude(
         resource_id=f"magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
         mag=MA_network,
-        magnitude_type="Mb",
+        magnitude_type="MwA",
         method_id="method/magnitude/amplitude_based",
         station_count=len(Mr_station),
         station_magnitude_contributions=s_m,
