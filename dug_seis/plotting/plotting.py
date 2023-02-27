@@ -199,7 +199,7 @@ def plot_time_characteristic_function(stream, nsta, nlta):
         else:
             ax.set_xlabel("time [ms]")
     plt.suptitle(
-        "time-characterisitc function \nstarttime: " + str(trace.stats.starttime),
+        "time-characterisitc function (r_sta/lta: " + str(nsta) + "/" + str(nlta) + ") \nstarttime: " + str(trace.stats.starttime),
         fontsize=10,
     )
     return fig
