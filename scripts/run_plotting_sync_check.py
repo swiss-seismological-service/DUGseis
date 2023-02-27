@@ -18,7 +18,7 @@ from dug_seis.plotting.plotting import (
 
 
 # Load project.
-project = DUGSeisProject(config="run_plotting_sync_check.yaml")
+project = DUGSeisProject(config="noise_check.yaml")
 
 
 # Loop over waveforms
