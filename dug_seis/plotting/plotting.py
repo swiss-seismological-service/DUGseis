@@ -71,7 +71,7 @@ def get_time_vector(stream):
     return time
 
 
-def ax_plot_x_y_data(ax, x_data, y_data, unit_pa="c", format_pa=".3f", markers="no"):
+def ax_plot_x_y_data(ax, x_data, y_data, unit_pa="c", format_pa=".1f", markers="no"):
     if markers == "yes":
         ax.plot(x_data, y_data, linewidth=0.75, zorder=8, marker=".")
     else:
@@ -128,25 +128,6 @@ def plot_time_waveform(stream, markers="no"):
     # stream.filter("bandpass", freqmin=50, freqmax=10000)
     for index, trace in enumerate(stream.traces):
         ax = fig.add_subplot(gspec[index, col])
-        # plot data * 10000 / 32000 mV
-        # if "XB.01" in trace.id:
-        #     data = np.multiply(trace.data, 50 / 2**16)
-        # else:
-        #     data = np.multiply(trace.data, 10000 / 2**16)
-        # elif trace.id == 'XB.01.16.001' or trace.id == 'XB.01.24.001':
-        #     data = np.multiply(trace.data, 100 / 2 ** 16)
-        # elif trace.id == 'XB.01.17.001' or trace.id == 'XB.01.25.001':
-        #     data = np.multiply(trace.data, 250 / 2 ** 16)
-        # elif trace.id == 'XB.01.18.001' or trace.id == 'XB.01.26.001':
-        #     data = np.multiply(trace.data, 500 / 2 ** 16)
-        # elif trace.id == 'XB.01.19.001' or trace.id == 'XB.01.27.001':
-        #     data = np.multiply(trace.data, 1000 / 2 ** 16)
-        # elif trace.id == 'XB.01.20.001' or trace.id == 'XB.01.28.001':
-        #     data = np.multiply(trace.data, 2000 / 2 ** 16)
-        # elif trace.id == 'XB.01.21.001' or trace.id == 'XB.01.29.001':
-        #     data = np.multiply(trace.data, 5000 / 2 ** 16)
-        # else:
-        #     data = np.multiply(trace.data, 10000 / 2**16)
         data = trace.data
         # data = data - np.mean(data)
         ax_plot_x_y_data(ax, time, data, unit_pa="counts", markers=markers)
@@ -171,6 +152,21 @@ def plot_time_waveform(stream, markers="no"):
     )
     return fig
 
+def plot_time_waveform_picks(stream, picks):
+    fig = plot_time_waveform(stream)
+    for index_pick, pick in enumerate(picks):
+        pick_id = picks[index_pick].waveform_id.id
+        for index_trace, trace in enumerate(stream):
+            if pick_id == stream.traces[index_trace].id:
+                time = (pick.time - trace.stats.starttime) * 1000  # relative pick time in ms
+                fig.axes[index_trace].vlines(
+                    time, fig.axes[index_trace].get_ylim()[0] * 0.5,
+                    fig.axes[index_trace].get_ylim()[1] * 0.5,
+                    color="r", linewidth=4)
+            else:
+                continue
+    fig.set_size_inches(11.69, 8.27)
+    return fig
 
 def plot_time_characteristic_function(stream, nsta, nlta):
     # chose plotting style
@@ -260,6 +256,7 @@ def plot_waveform_characteristic_function(stream, nsta, nlta):
         "waveform-characterisitc function \nstarttime: " + str(trace.stats.starttime),
         fontsize=10,
     )
+    fig.set_size_inches(11.69, 8.27)
     return fig
 
 
@@ -306,6 +303,7 @@ def plot_waveform_fft_amplitude(stream):
         "waveform-characterisitc function \nstarttime: " + str(trace.stats.starttime),
         fontsize=10,
     )
+    fig.set_size_inches(11.69, 8.27)
     return fig
 
 
