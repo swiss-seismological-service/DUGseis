@@ -7,6 +7,10 @@ from obspy import UTCDateTime
 from dug_seis.project.project import DUGSeisProject
 import dug_seis.plotting.plotting as ds_plt
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+mpl.use('Qt5Agg')
+
 # Load the DUGSeis project.
 project = DUGSeisProject(config="run_processing_FEAR_stations.yaml")
 
@@ -31,6 +35,8 @@ st_data = project.waveforms.get_waveforms(
     )
 
 # plot data
+st_data.plot()
+
 fig1 = ds_plt.plot_time_waveform(st_data, markers="no")
 fig1.set_size_inches(ds_plt.cm_to_inch(21), ds_plt.cm_to_inch(29.7))
 fig1.show()

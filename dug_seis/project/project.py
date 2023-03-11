@@ -370,8 +370,8 @@ class DUGSeisProject:
             if extra_channels_in_meta_data:
                 raise ValueError(msg)
             # Otherwise only warn.
-            elif extra_channels_in_data:
-                logger.warn(msg)
+            #elif extra_channels_in_data:
+            #   logger.warn(msg) (Linus 11.03.2023: only temporary fix to don't get this extended info every time an asdf file is loaded)
 
         self.__waveform_handler = wh
 
