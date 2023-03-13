@@ -366,12 +366,13 @@ class DUGSeisProject:
                 )
                 msg += f"\n\n\nAdditional channels in the meta data:\n{in_meta}"
 
+            # (Linus 11.03.2023: only temporary fix to don't get this extended info every time an asdf file is loaded)
             # Raise for extra channels in the meta data. This is likely an error.
-            if extra_channels_in_meta_data:
-                raise ValueError(msg)
+            # if extra_channels_in_meta_data:
+            #     raise ValueError(msg)
             # Otherwise only warn.
             #elif extra_channels_in_data:
-            #   logger.warn(msg) (Linus 11.03.2023: only temporary fix to don't get this extended info every time an asdf file is loaded)
+            #   logger.warn(msg)
 
         self.__waveform_handler = wh
 
