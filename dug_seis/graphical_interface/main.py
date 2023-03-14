@@ -540,11 +540,17 @@ class MainWindow(QtWidgets.QMainWindow):
     def _update_event_str(self, event):
         pick_str = sorted([p.waveform_id.id for p in event.picks])
         origin_str = f"    {len(event.origins)} origins\n"
+        magnitude_str = f"    {len(event.magnitudes)} magnitudes\n"
         for origin in event.origins:
             origin_str += (
                 f"       Origin at {origin.time} with "
                 f"{len(origin.arrivals)} arrivals.\n"
             )
+        if len(event.magnitudes) > 0:
+            for magnitude in event.magnitudes:
+                magnitude_str += (
+                    f"       Magnitude: {magnitude.mag} \n"
+                )
 
         text_str = (
             f"Event {event.resource_id}\n"
@@ -552,7 +558,7 @@ class MainWindow(QtWidgets.QMainWindow):
             f"    {len(event.picks)} picks\n"
             f"       Picks on: {', '.join(pick_str)}\n"
             f"{origin_str}"
-            f"    {len(event.magnitudes)} magnitudes\n"
+            f"{magnitude_str} "
         )
         self.ui.event_text_browser.setText(text_str)
 
