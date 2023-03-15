@@ -35,6 +35,7 @@ def coincidence_trigger(
     thr_off,
     stream,
     thr_coincidence_sum,
+    active_channels,
     trace_ids=None,
     max_trigger_length=1e6,
     delete_long_trigger=False,
@@ -85,6 +86,7 @@ def coincidence_trigger(
     :param stream: Stream containing waveform data for all stations. These
         data are changed inplace, make a copy to keep the raw waveform data.
     :type thr_coincidence_sum: int or float
+    :type active_channels: list of active channels
     :param thr_coincidence_sum: Threshold for coincidence sum. The network
         coincidence sum has to be at least equal to this value for a trigger to
         be included in the returned trigger list.
@@ -178,6 +180,8 @@ def coincidence_trigger(
             new_options = {}
             for key, val in options.items():
                 new_options[key] = util_val_of_scalar_or_list(val, idx)
+        if not any(x in tr.id for x in active_channels):
+            # Linus inserted this on 15.03.2023, no cf performed on trigger channels
             tr.trigger(trigger_type, **new_options)
             # end of adjustments
 
