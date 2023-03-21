@@ -184,6 +184,8 @@ def coincidence_trigger(
             # Linus inserted this on 15.03.2023, no cf performed on trigger channels
             tr.trigger(trigger_type, **new_options)
             # end of adjustments
+        if any(x in tr.id for x in active_channels):
+            x = 2
 
         kwargs["max_len"] = int(max_trigger_length * tr.stats.sampling_rate + 0.5)
 
