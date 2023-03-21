@@ -48,10 +48,11 @@ def dug_trigger(
             the first and the last moment of triggering at different stations
             for which this event is classified as electronic interference.
             Usually set to 0.25e-2.
-        conincidence_trigger_opts: Keyword arguments passed on to the coincidence
+        coincidence_trigger_opts: Keyword arguments passed on to the coincidence
             trigger.
     """
     triggers = coincidence_trigger(stream=st, **conincidence_trigger_opts)
+
     events = []
     for trig in triggers:
         event = {"time": min(trig["time"]), "triggered_channels": trig["trace_ids"]}
@@ -65,8 +66,7 @@ def dug_trigger(
 
         # Classification.
         # Triggered on active triggering channel == active
-        # old: if active_triggering_channel and active_triggering_channel in trig["trace_ids"]:
-        if any(item in trig["trace_ids"] for item in active_triggering_channel):
+        if active_triggering_channel and active_triggering_channel in trig["trace_ids"]:
             classification = "active"
         # Single input trace == passive
         elif len(st) == 1:
