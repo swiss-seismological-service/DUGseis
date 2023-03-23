@@ -95,7 +95,7 @@ def ax_plot_x_y_data(ax, x_data, y_data, unit_pa="c", format_pa=".1f", markers="
     )
     # basic plotting options
     ax.grid(
-        b=None, which="major", axis="x", color="silver", linestyle="-", linewidth=0.25
+        which="major", axis="x", color="silver", linestyle="-", linewidth=0.25
     )
     ax.set_axisbelow(True)
     ax.axhline(color="black", linewidth=0.4, zorder=5)

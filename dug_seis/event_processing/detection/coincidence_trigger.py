@@ -181,12 +181,18 @@ def coincidence_trigger(
             for key, val in options.items():
                 new_options[key] = util_val_of_scalar_or_list(val, idx)
         if not any(x in tr.id for x in active_channels):
-            # Linus inserted this on 15.03.2023, no cf performed on trigger channels
+            # Linus inserted this on 15.03.2023, no cf performed on trigger channel/s but
+            # filtering/derivative/filtering/scaling and negation performed
             tr.trigger(trigger_type, **new_options)
+        else:
+            kernel_size = 2000
+            kernel = np.ones(kernel_size) / kernel_size
+            data_filtered = np.convolve(tr.data, kernel, mode='same')
+            time = np.arange(0, len(data_filtered)) * 1 / st.traces[0].stats.sampling_rate
+            data_filtered_dif = np.gradient(data_filtered) / np.gradient(time)
+            data_filtered_dif_filtered = np.convolve(data_filtered_dif, kernel, mode='same')
+            tr.data = -1 * data_filtered_dif_filtered/1000
             # end of adjustments
-        if any(x in tr.id for x in active_channels):
-            x = 2
-
         kwargs["max_len"] = int(max_trigger_length * tr.stats.sampling_rate + 0.5)
 
         # original
