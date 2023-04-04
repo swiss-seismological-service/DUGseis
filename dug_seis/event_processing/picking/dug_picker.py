@@ -248,20 +248,22 @@ def dug_picker(
     return picks
 
 
-def sta_lta(stream, st_window, lt_window, threshold_on, threshold_off):
+def sta_lta(stream, st_window, lt_window, thresholds):
     """
     Apply the STA LTA picker
     """
+    stream.detrend("constant")
+    # stream.filter("bandpass", freqmin=1000.0, freqmax=20000.0)
     sampling_rate = stream[0].stats.sampling_rate
 
     picks = []
 
-    for trace in stream:
+    for idx, trace in enumerate(stream):
         # create characteristic function
         cft = recursive_sta_lta(trace, st_window, lt_window)
 
         # do picking
-        trig = trigger_onset(cft, threshold_on, threshold_off)
+        trig = trigger_onset(cft, thresholds[idx], thresholds[idx])
 
         if len(trig):
             t_pick_UTC = (

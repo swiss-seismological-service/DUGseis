@@ -130,7 +130,7 @@ def plot_time_waveform(stream, markers="no"):
         ax = fig.add_subplot(gspec[index, col])
         data = trace.data
         # data = data - np.mean(data)
-        ax_plot_x_y_data(ax, time, data, unit_pa="counts", markers=markers)
+        ax_plot_x_y_data(ax, time, data, markers=markers)
 
         # Percentiles
         # p = np.percentile(data, 95)
@@ -202,12 +202,16 @@ def plot_time_characteristic_function(stream, nsta, nlta):
 
 
 def plot_y_labels(trace, ax):
-    y_label = "{0}.{1}\n{2}.{3}".format(
-        trace.stats.network,
+    y_label = "{0}.{1}".format(
         trace.stats.station,
         trace.stats.location,
-        trace.stats.channel,
     )
+    # y_label = "{0}.{1}\n{2}.{3}".format(
+    #     trace.stats.network,
+    #     trace.stats.station,
+    #     trace.stats.location,
+    #     trace.stats.channel,
+    # )
     handle = plt.text(
         -0.08,
         0.5,

@@ -53,7 +53,8 @@ def dug_trigger(
     """
     triggers = coincidence_trigger(stream=st, **conincidence_trigger_opts)
     events = []
-    for trig in triggers:
+    event_mask_passive = [False for i in range(len(triggers))]
+    for idx, trig in enumerate(triggers):
         event = {"time": min(trig["time"]), "triggered_channels": trig["trace_ids"]}
         # Too close to previous event.
         if (
@@ -79,8 +80,9 @@ def dug_trigger(
         # Otherwise just treat is as passive.
         else:
             classification = "passive"
+            event_mask_passive[idx] = True
 
         event["classification"] = classification
         events.append(event)
 
-    return events
+    return events, event_mask_passive
