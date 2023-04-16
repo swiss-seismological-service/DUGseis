@@ -38,15 +38,13 @@ def is_time_between(begin_time, end_time, check_time):
         return check_time >= begin_time or check_time <= end_time
 
 
-def amplitude_based_relative_magnitude(st_event, event):
+def amplitude_based_relative_magnitude(stream, event):
     # main parameters for magnitude processing
     V_S = 3100.  # [m/s]
     filter_freq_min = 3e3  # [Hz]
     filter_freq_max = 12e3  # [Hz]
     filter_corners = 4
     filter_zerophase = "false"
-    signal_copy = st_event.copy()
-    noise_copy = st_event.copy()
     gainLogAE = 100  # 10dB + 30dB
     gainAE = 1. / gainLogAE
     Count2VoltAE = 10. / 32000  # 10V on 32000 samples
@@ -68,148 +66,150 @@ def amplitude_based_relative_magnitude(st_event, event):
     Mr_station = []
 
     count = 0
-    tmpPicks = event.picks
-    if len(tmpPicks)>len(event.preferred_origin().arrivals):
-        idx = [i for i,x in enumerate(tmpPicks) if x.evaluation_mode=='manual']
-        PicksManual = [tmpPicks[x].waveform_id for x in idx]
-        idx2 = [i for i,x in enumerate(tmpPicks) if x.waveform_id in PicksManual and x.evaluation_mode=='automatic']
-        PickDouble = [tmpPicks[x].waveform_id for x in idx2]
-        Picks = [x for x in tmpPicks if x.waveform_id not in PickDouble or x.evaluation_mode=='manual']
-    else:
-        Picks = tmpPicks
+    # tmpPicks = event.picks
+    # if len(tmpPicks)>len(event.preferred_origin().arrivals):
+    #     idx = [i for i, x in enumerate(tmpPicks) if x.evaluation_mode=='manual']
+    #     PicksManual = [tmpPicks[x].waveform_id for x in idx]
+    #     idx2 = [i for i,x in enumerate(tmpPicks) if x.waveform_id in PicksManual and x.evaluation_mode=='automatic']
+    #     PickDouble = [tmpPicks[x].waveform_id for x in idx2]
+    #     Picks = [x for x in tmpPicks if x.waveform_id not in PickDouble or x.evaluation_mode=='manual']
+    # else:
+    #     Picks = tmpPicks
 
-    for index, pick in enumerate(Picks):
+    for index, pick in enumerate(event.picks):
         dist = event.preferred_origin().arrivals[index].distance  # get distances
         # s_arrival = event.preferred_origin().time + (dist / s_wave_velocity)  # calc. theoretical s-wave arrival
         # delta_p_s = s_arrival - pick.time  # time between s-arrival and p-pick
         delta_p_s = dist / V_S - dist / V_P
-        signal_window_start_time = pick.time - 0.5 * delta_p_s
-        signal_window_end_time = pick.time + delta_p_s
-        noise_window_start_time = pick.time - 2.5*delta_p_s
-        noise_window_end_time = pick.time - 0.5 * delta_p_s
-
-        # magnitude computation is omitted when delta_p_s or signal/noise windows are not within the st_event time
-        # interval
-        if (
-            (delta_p_s < 0)
-            or not is_time_between(
-                signal_copy[0].stats.starttime,
-                signal_copy[0].stats.endtime,
-                signal_window_start_time,
-            )
-            or not is_time_between(
-                signal_copy[0].stats.starttime,
-                signal_copy[0].stats.endtime,
-                signal_window_end_time,
-            )
-            or not is_time_between(
-                noise_copy[0].stats.starttime,
-                noise_copy[0].stats.endtime,
-                noise_window_start_time,
-            )
-            or not is_time_between(
-                noise_copy[0].stats.starttime,
-                noise_copy[0].stats.endtime,
-                noise_window_end_time,
-            )
-        ):
-            print('Possible error')
-            #continue
-
-        distances.append(
-            dist
-        )  # only the distances for which an amplitude can be estimated
-        t_window.append(
-            TimeWindow(begin=0.0, end=delta_p_s * 2, reference=pick.time - delta_p_s)
-        )  # prepare
-        # "Amplitude" class TimeWindow
-
-        # get signal window
-        signal = signal_copy.select(id=pick.waveform_id.id)[0]
-        signal = signal.trim(
-            starttime=signal_window_start_time, endtime=signal_window_end_time
-        )
-        signal = signal.detrend("constant")
-        signal.taper(max_percentage=0.05, type="hann")
-        signal = signal.filter(
-            "bandpass",
-            freqmin=filter_freq_min,
-            freqmax=filter_freq_max,
-            corners=filter_corners,
-            zerophase=filter_zerophase,
-        )
-        p_amp.append(
-            np.amax(np.abs(signal.data)) * conversion_factor_counts_mV
-        )  # get p-wave amplitude
-
-        # get noise window
-        noise = noise_copy.select(id=pick.waveform_id.id)[0]
-        noise = noise.slice(
-            starttime=noise_window_start_time, endtime=noise_window_end_time
-        )
-        noise = noise.detrend("constant")
-        noise.taper(max_percentage=0.05, type="hann")
-        noise = noise.filter(
-            "bandpass",
-            freqmin=filter_freq_min,
-            freqmax=filter_freq_max,
-            corners=filter_corners,
-            zerophase=filter_zerophase,
-        )
-        noise_95pers = np.percentile(
-            np.abs(noise.data), 95
-        )  # take 95 % percentile to omit outliers
-        n_amp.append(noise_95pers * conversion_factor_counts_mV)
-        if n_amp[count]!=0:
-            SNR = p_amp[count] / n_amp[count]
-        else:
-            SNR = 0
-
-        event.amplitudes.append(
-            Amplitude(resource_id=f"amplitude/p_wave/{uuid.uuid4()}",
-                      generic_amplitude=p_amp[count],
-                      type='AMB',
-                      unit='other',
-                      snr=SNR,
-                      waveform_id=WaveformStreamID(network_code=pick.waveform_id.network_code,
-                                                   station_code=pick.waveform_id.station_code,
-                                                   location_code=pick.waveform_id.location_code,
-                                                   channel_code=pick.waveform_id.channel_code),
-                      time_window=TimeWindow(begin=t_window[count].begin, end=t_window[count].end,
-                                             reference=t_window[count].reference)))
-
-
-        corr_fac_1 = np.exp(np.pi * (dist - r_0) * f_0 / (Q * V_P))
-        # correction for geometrical spreading
-        corr_fac_2 = dist / r_0
-        # station magnitude computation
-        if p_amp[count]==0:
+        if delta_p_s < 0:
+            print('No magnitude: delta_p_s < 0')
             continue
-        tmpMrSta = np.log10(p_amp[count] * corr_fac_2 * corr_fac_1)
-        Mr_station.append(tmpMrSta)
-        # append station magnitude to event
-        event.station_magnitudes.append(
-            StationMagnitude(resource_id=f"station_magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
-                             origin_id=event.preferred_origin_id.id,
-                             mag= -2.25 + 0.66 * tmpMrSta,
-                             station_magnitude_type='MwA',
-                             amplitude_id=event.amplitudes[count].resource_id))
-        # store station magnitude contribution
-        s_m.append(
-            StationMagnitudeContribution(
-                station_magnitude_id="smi:local/" + event.station_magnitudes[count].resource_id.id,
-                weight=1 / len(event.amplitudes)))
 
-        count+=1
+        signal_window_start_time = pick.time - delta_p_s
+        signal_window_end_time = pick.time + delta_p_s
 
-    if not event.amplitudes:  # if no amplitudes are assigned return from the definition
+        # if signal window is not in stream window
+        if not is_time_between(
+                stream[0].stats.starttime,
+                stream[0].stats.endtime,
+                signal_window_start_time,
+            ) or not is_time_between(
+                stream[0].stats.starttime,
+                stream[0].stats.endtime,
+                signal_window_end_time):
+            print('No stM: ' + pick.waveform_id.id)
+            continue
+        else:
+            noise_window_start_time = pick.time - 2 * delta_p_s
+            noise_window_end_time = pick.time
+
+            # if noise window is not in stream, take noise window at end of stream
+            if not is_time_between(
+                    stream[0].stats.starttime,
+                    stream[0].stats.endtime,
+                    noise_window_start_time):
+
+                noise_window_start_time = stream[0].stats.endtime - 2 * delta_p_s
+                noise_window_end_time = stream[0].stats.endtime
+                print('Noise window at end of stream')
+
+            distances.append(
+                dist
+            )  # only the distances for which an amplitude can be estimated
+            t_window.append(
+                TimeWindow(begin=0.0, end=delta_p_s * 2, reference=pick.time - delta_p_s)
+            )  # prepare
+            # "Amplitude" class TimeWindow
+
+            # get signal window
+            signal = stream.select(id=pick.waveform_id.id)
+            signal = signal.slice(
+                starttime=signal_window_start_time, endtime=signal_window_end_time
+            )
+            signal = signal.detrend("constant")
+            signal.taper(max_percentage=0.05, type="hann")
+            signal = signal.filter(
+                "bandpass",
+                freqmin=filter_freq_min,
+                freqmax=filter_freq_max,
+                corners=filter_corners,
+                zerophase=filter_zerophase,
+            )
+            p_amp.append(
+                np.amax(np.abs(signal.traces[0].data)) * conversion_factor_counts_mV
+            )
+
+            # get noise window
+            noise = stream.select(id=pick.waveform_id.id)
+            noise = noise.slice(
+                starttime=noise_window_start_time, endtime=noise_window_end_time
+            )
+            noise = noise.detrend("constant")
+            noise.taper(max_percentage=0.05, type="hann")
+            noise = noise.filter(
+                "bandpass",
+                freqmin=filter_freq_min,
+                freqmax=filter_freq_max,
+                corners=filter_corners,
+                zerophase=filter_zerophase,
+            )
+            noise_95pers = np.percentile(
+                np.abs(noise.traces[0].data), 95
+            )  # take 95 % percentile to omit outliers
+            n_amp.append(noise_95pers * conversion_factor_counts_mV)
+            snr = p_amp[count] / n_amp[count]
+            # if n_amp[count] != 0:
+            #     snr = p_amp[count] / n_amp[count]
+            # else:
+            #     snr = 0
+
+            event.amplitudes.append(
+                Amplitude(resource_id=f"amplitude/p_wave/{uuid.uuid4()}",
+                          generic_amplitude=p_amp[count],
+                          type='AMB',
+                          unit='other',
+                          snr=snr,
+                          waveform_id=WaveformStreamID(network_code=pick.waveform_id.network_code,
+                                                       station_code=pick.waveform_id.station_code,
+                                                       location_code=pick.waveform_id.location_code,
+                                                       channel_code=pick.waveform_id.channel_code),
+                          time_window=TimeWindow(begin=t_window[count].begin, end=t_window[count].end,
+                                                 reference=t_window[count].reference)))
+
+            corr_fac_1 = np.exp(np.pi * (dist - r_0) * f_0 / (Q * V_P))
+            # correction for geometrical spreading
+            corr_fac_2 = dist / r_0
+            # station magnitude computation
+            if p_amp[count] == 0:
+                continue
+            tmpMrSta = np.log10(p_amp[count] * corr_fac_2 * corr_fac_1)
+            Mr_station.append(tmpMrSta)
+            # append station magnitude to event
+            event.station_magnitudes.append(
+                StationMagnitude(resource_id=f"station_magnitude/p_wave_magnitude/relative/{uuid.uuid4()}",
+                                 origin_id=event.preferred_origin_id.id,
+                                 mag=-2.25 + 0.66 * tmpMrSta,
+                                 station_magnitude_type='MwA',
+                                 amplitude_id=event.amplitudes[count].resource_id))
+            # store station magnitude contribution
+            s_m.append(
+                StationMagnitudeContribution(
+                    station_magnitude_id="smi:local/" + event.station_magnitudes[count].resource_id.id,
+                    weight=1 / len(event.amplitudes)))
+
+            count += 1
+
+    # if not event.amplitudes:  # if no amplitudes are assigned return from the definition
+    #     delattr(event, 'amplitudes')
+    #     return event
+
+    if count < 1:  # need at least 2 station mags
         delattr(event, 'amplitudes')
         return event
 
-
     Mr_station = np.array(Mr_station)
     # Mr_network = np.log10(np.sqrt(np.sum((10**Mr_station)**2) / len(Mr_station)))  # network magnitude
-    Mr_network = np.sum(Mr_station) / len(Mr_station) # network magnitude
+    Mr_network = np.sum(Mr_station) / len(Mr_station)  # network magnitude
     MA_network = -2.25 + 0.66 * Mr_network  # temporary relation deduced from VALTER Stimulaiton1, using individual stations estimations
 
     # Create network magnitude and add station magnitude contribution

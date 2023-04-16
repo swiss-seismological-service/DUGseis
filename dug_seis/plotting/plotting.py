@@ -168,6 +168,7 @@ def plot_time_waveform_picks(stream, picks):
     fig.set_size_inches(11.69, 8.27)
     return fig
 
+
 def plot_time_characteristic_function(stream, nsta, nlta):
     # chose plotting style
     plt.style.use("seaborn-bright")

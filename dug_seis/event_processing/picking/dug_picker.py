@@ -270,6 +270,13 @@ def sta_lta(stream, st_window, lt_window, thresholds):
                 trace.stats.starttime
                 + adjust_pick_time(trig[0][0], cft) / sampling_rate
             )
+            # calculate snr
+            try:
+                snr = max(abs(trace.data[trig[0][0] + 10:trig[0][0] + 100])) / max(
+                    abs(trace.data[trig[0][0] - 100:trig[0][0] - 10]))
+            except ValueError:
+                continue
+
             picks.append(
                 Pick(
                     time=t_pick_UTC,
@@ -281,7 +288,7 @@ def sta_lta(stream, st_window, lt_window, thresholds):
                     ),
                     method_id="recursive_sta_lta",
                     phase_hint="P",
-                    evaluation_mode="automatic",
+                    evaluation_mode="automatic",  # comments=[str(round(snr, 3))],
                 )
             )
 
