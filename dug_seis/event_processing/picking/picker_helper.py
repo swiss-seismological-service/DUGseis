@@ -88,7 +88,7 @@ def AIC_picker_wrapper(stream, picks, pick_refine_window=0.004):
             aicobj = AIC(signal, id=pick.waveform_id.id)
             aicobj.work()
             aic_pick_time = aicobj.get_pick()
-            idx_aic = aicobj.get_pick_index()
+            # idx_aic = aicobj.get_pick_index()
             # aicobj.plot()
 
             # if no pick, just go with previous
@@ -98,11 +98,11 @@ def AIC_picker_wrapper(stream, picks, pick_refine_window=0.004):
             elif np.abs(pick.time - aic_pick_time) <= 0.8 * pick_refine_window:
 
                 # try to calculate snr
-                try:
-                    snr = max(abs(signal.traces[0].data[idx_aic + 10:idx_aic + 100])) / max(
-                        abs(signal.traces[0].data[idx_aic - 100:idx_aic - 10]))
-                except ValueError:
-                    continue
+                # try:
+                #     snr = max(abs(signal.traces[0].data[idx_aic + 10:idx_aic + 100])) / max(
+                #         abs(signal.traces[0].data[idx_aic - 100:idx_aic - 10]))
+                # except ValueError:
+                #     continue
 
                 picks[idx] = Pick(
                     time=aic_pick_time,

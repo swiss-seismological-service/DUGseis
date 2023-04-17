@@ -224,7 +224,7 @@ def amplitude_based_relative_magnitude(stream, event):
 
     # append magnitude
     event.magnitudes.append(m)
-    logger.info(f"MA_net successfully computed: {MA_network:.2f}")
+    logger.info(f"M_net successfully computed: {MA_network:.2f}")
     # f"Network magnitude successfully computed: MA{MA_network:.2f}")
 
     return event
