@@ -313,9 +313,9 @@ class RelocationDialog(QtWidgets.QDialog):
         self.ui.rms_time_error_label.setText(f"{rms:.5f}")
         self.new_origin = origin
 
-        st = self.project.waveforms.get_waveforms(
-            channel_ids=self.channels, start_time=self.starttime, end_time=self.endtime
-        )
+        # st = self.project.waveforms.get_waveforms(
+        #     channel_ids=self.channels, start_time=self.starttime, end_time=self.endtime
+        # )
 
 
     @QtCore.Slot()
