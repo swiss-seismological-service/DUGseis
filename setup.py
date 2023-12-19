@@ -42,7 +42,6 @@ _install_requires = [
     "schema",
     "scipy",
     "tqdm",
-    "aurem",
 ]
 
 setup(
