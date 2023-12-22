@@ -41,8 +41,8 @@ affiliations:
   - name: Mondaic AG, Zurich, Switzerland
     index: 5
 
-date: 14 December 2023
-bibliography: DUGseisPaperCitations.bib
+date: 22 December 2023
+bibliography: paper.bib
 
 ---
 
