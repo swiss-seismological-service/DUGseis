@@ -81,6 +81,6 @@ Since 2021 dozens of hydraulic stimulation experiments have been performed in th
 
 
 # Acknowledgements
-The submitting author, Martina Rosskopf, is funded by the SNF Multi PhD project (200021_192151) in the Bedretto Underground Laboratory. The BedrettoLab is financed by the Werner Siemens Foundation, ETH Zürich and the Swiss National Science Foundation. This paper is BULGG publication BPN_008.
+The submitting author, Martina Rosskopf, is funded by SNF Project “Characterizing and understanding Enhanced Geothermal Systems (EGS) - novel tools and applications in a deep underground laboratory” (200021_192151). The BedrettoLab is financed by ETH Zürich and the Werner Siemens Foundation. This paper is BULGG publication BPN_008.
 
 # References
