@@ -19,7 +19,7 @@ Script that contains various helper functions for picker.
 """
 import numpy as np
 from dug_seis.event_processing.magnitudes.amplitude_based_magnitudes import is_time_between
-from aurem.pickers import AIC
+#from aurem.pickers import AIC
 from obspy.core.event import Pick, WaveformStreamID
 import numpy as np
 from obspy.signal.trigger import recursive_sta_lta
