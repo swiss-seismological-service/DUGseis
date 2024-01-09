@@ -27,21 +27,21 @@ _authors = [
 _authors_email = ["linus.villiger@sed.ethz.ch", "joseph.doetsch@erdw.ethz.ch"]
 
 _install_requires = [
-    "click",
-    "joblib",
-    "matplotlib",
-    "numba",
-    "numpy",
-    "obspy",
-    "pyasdf",
-    "pyopengl",
+    "click==8.0.1",
+    "joblib==1.2.0",
+    "matplotlib==3.4.3",
+    "numba==0.54.0",
+    "numpy==1.20.3",
+    "obspy==1.2.2",
+    "pyasdf==0.7.5",
+    "pyopengl==3.1.5",
     "pyproj>=3",
-    "pyqtgraph",
-    "pyside6",
-    "pyyaml",
-    "schema",
-    "scipy",
-    "tqdm",
+    "pyqtgraph==0.12.2",
+    "pyside6==6.1.3",
+    "pyyaml==5.4.1",
+    "schema==0.7.4",
+    "scipy==1.7.1",
+    "tqdm==4.62.3",
 ]
 
 setup(
