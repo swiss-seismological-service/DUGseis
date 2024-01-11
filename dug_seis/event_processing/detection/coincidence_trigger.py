@@ -35,6 +35,7 @@ def coincidence_trigger(
     thr_off,
     stream,
     thr_coincidence_sum,
+    active_channels,
     trace_ids=None,
     max_trigger_length=1e6,
     delete_long_trigger=False,
@@ -85,6 +86,7 @@ def coincidence_trigger(
     :param stream: Stream containing waveform data for all stations. These
         data are changed inplace, make a copy to keep the raw waveform data.
     :type thr_coincidence_sum: int or float
+    :type active_channels: list of active channels
     :param thr_coincidence_sum: Threshold for coincidence sum. The network
         coincidence sum has to be at least equal to this value for a trigger to
         be included in the returned trigger list.
@@ -178,9 +180,19 @@ def coincidence_trigger(
             new_options = {}
             for key, val in options.items():
                 new_options[key] = util_val_of_scalar_or_list(val, idx)
+        if not any(x in tr.id for x in active_channels):
+            # Linus inserted this on 15.03.2023, no cf performed on trigger channel/s but
+            # filtering/derivative/filtering/scaling and negation performed
             tr.trigger(trigger_type, **new_options)
+        else:
+            kernel_size = 2000
+            kernel = np.ones(kernel_size) / kernel_size
+            data_filtered = np.convolve(tr.data, kernel, mode='same')
+            time = np.arange(0, len(data_filtered)) * 1 / st.traces[0].stats.sampling_rate
+            data_filtered_dif = np.gradient(data_filtered) / np.gradient(time)
+            data_filtered_dif_filtered = np.convolve(data_filtered_dif, kernel, mode='same')
+            tr.data = -1 * data_filtered_dif_filtered/1000
             # end of adjustments
-
         kwargs["max_len"] = int(max_trigger_length * tr.stats.sampling_rate + 0.5)
 
         # original
