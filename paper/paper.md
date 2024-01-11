@@ -50,11 +50,8 @@ bibliography: paper.bib
 # Summary
 Detecting earthquakes and compiling these to earthquake catalogs are fundamental tasks in seismology. Acoustic emission sensors allow detecting tiniest so called picoseismic events representing fractures on mm, cm or dm scale (-6<Magnitude<0). Such picoseismic events have corner frequencies of 1kHz-1MHz and cannot be handled by standard seismic processing softwares that deal with signals <500 Hz. Other commercial software for monitoring picoseismicity for structural health monitoring applications, e.g. mines does exist, but are only trigger-based. For large-scale experiments in underground laboratories (e.g., hydraulic stimulation, earthquake nucleation, nuclear waste disposal) continuous recordings of the seismicity data streams in MHz range are needed to study the rock response in great detail. The DUGseis software package is filling this gap. It was developed to manage, process and visualize continuous, high-frequency seismic data. The package can be used to create earthquake catalogs in real-time, as well as in post-processing, and directly visualize their event waveforms and locations in a graphical interface. Since the software is python based, users can easily add their own processing routines.
 
-
-
 # Statement of need
 The open source, python-based DUGseis package is designed to align with the functionalities of SeisComP [@seiscomp], a standard software used in microseismic-large scale earthquake processing (<500Hz, M>-0.5). DUGseis is tailored to picoseismic events (-6<M<0) with much higher frequency ranges (kHz-MHz), as recorded by acoustic emission sensors (AE sensors). High-frequency seismic data processing is common in mining environments to monitor tunnel stability, and became very popular in underground laboratories. Until now, these projects have employed trigger-based recordings, meaning that the incoming waveform data is only saved to disk if a pre-set trigger threshold is reached by a recorded event.  One disadvantage of the triggered recording strategy is the so-called dead time. After an event is triggered, no additional event can be triggered until the processing of the first triggered event is completed. Removing these dead times plays a significant role if high event rates are expected. With DUGseis it is possible to record and store [@DugSeisAcqui] continuous waveform data in the MHz range and directly process the data, removing these dead times.  Being Python-based, DUGseis offers a high flexibility for the researchers to complement the processing with their own Python-based codes, adjusted to the project needs. 
-
 
 # Functionality and Features
 The DUGseis software is a full Python-based package with the main focus to process continuous high-frequency data, extract picoseismic event waveforms and create an earthquake catalog. To make its usage and its outputs more easily accessible for seismologists, some features use modules and functions of the ObsPy package [@Beyreuther2010], a popular package in seismology.\
@@ -75,11 +72,8 @@ The graphical interface provides the opportunity to inspect each event and displ
 
 ![Graphical interface of GUI with waveforms and picks of an event and the 3D plot of the events in the database. \label{fig:GUI_example}](DUGseisGUI_V2.JPG)
 
-
 # Usage
 Since 2021 dozens of hydraulic stimulation experiments have been performed in the Bedretto Underground Laboratory in Switzerland [@Ma2022; @Plenkers2023]. In this context, the DUGseis package was used to detect picoseismicity by processing the incoming high-frequency waveform data in real-time and in post-processing mode [@Obermann2024]. 
-
-
 
 # Acknowledgements
 The submitting author, Martina Rosskopf, is funded by SNF Project “Characterizing and understanding Enhanced Geothermal Systems (EGS) - novel tools and applications in a deep underground laboratory” (200021_192151). The BedrettoLab is financed by ETH Zürich and the Werner Siemens Foundation. This paper is BULGG publication BPN_008.
