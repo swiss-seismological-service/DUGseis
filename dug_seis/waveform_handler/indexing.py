@@ -140,7 +140,7 @@ def combine_caches(caches: typing.List[typing.Dict]):
     npts = int(round((endtime - starttime) / dt_ns)) + 1
 
     data = np.zeros((len(receiver_list), 2, npts), dtype=caches[0]["data"].dtype)
-    has_data_mask = np.zeros(npts, dtype=np.bool)
+    has_data_mask = np.zeros(npts, dtype=bool)
 
     for _i, cache in enumerate(caches):
         # Map to the receiver indices.

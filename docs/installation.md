@@ -4,7 +4,7 @@
 
 `DUGSeis` is a Python package and has the following dependencies:
 
-* `Python >= 3.7`
+* `Python >= 3.9`
 * `click`
 * `joblib`
 * `numba`
@@ -33,12 +33,9 @@ distribution you see fit.
 2. Create a new environment:
 
 ```bash
-conda create -n dug_seis python=3.9
+conda create -n dug_seis python=3.11
 conda activate dug_seis
 ```
-
-On Windows please use Python 3.8 for now because ObsPy does not yet build 3.9
-binaries.
 
 **Make sure the `dug_seis` environment is active when using `DUGSeis` and for
 all the following steps on this page!**
