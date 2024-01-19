@@ -1208,6 +1208,11 @@ def test_write_and_read_same_picks_used_in_multiple_arrivals():
 
     # unused pick.
     del event.picks[0]
+
+    # Sort origins in case they are unsorted.
+    event.origins = sorted(event.origins, key=lambda x: str(x.resource_id))
+    events[0].origins = sorted(events[0].origins, key=lambda x: str(x.resource_id))
+
     # Now they are the same.
     assert event == events[0]
 
