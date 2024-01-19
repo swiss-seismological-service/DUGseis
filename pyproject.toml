@@ -1,3 +1,64 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+authors = [
+    { name = "SCCER-SoE" },
+    { name = "SED" },
+    { name = "ETHZ" },
+    { name = "Joseph Doetsch", email = "joseph.doetsch@erdw.ethz.ch" },
+    { name = "Linus Villiger", email = "linus.villiger@sed.ethz.ch" },
+    { name = "Thomas Haag" },
+    { name = "Sem Demir" },
+    { name = "DUGSeis Authors" },
+]
+name = "DUG-Seis"
+version = "0.3"
+description = "Processing, data management, and visualization of micro-seismic data."
+requires-python = ">=3.9"
+license = { text = "LGPL" }
+keywords = ["induced seismicity", "seismology"]
+classifiers = [
+    "Environment :: Console",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "click",
+    "joblib",
+    "matplotlib",
+    "numba",
+    "numpy",
+    "obspy",
+    "pyasdf",
+    "pyopengl",
+    "pyproj>=3",
+    "pyqtgraph",
+    "pyside6",
+    "pyyaml",
+    "schema",
+    "scipy",
+    "tqdm",
+]
+
+[project.urls]
+Homepage = "https://dugseis.readthedocs.io"
+Documentation = "https://dugseis.readthedocs.io"
+Repository = "https://github.com/swiss-seismological-service/DUGseis"
+
+[project.scripts]
+dug-seis = "dug_seis.cmd_line:cli"
+
+[tool.setuptools]
+packages = ["dug_seis"]
+
 [tool.black]
 exclude = "dug_seis/graphical_interface/ui_files"
 
@@ -8,5 +69,5 @@ filterwarnings = [
     'ignore:.*`np.long` is a deprecated alias for `np.compat.long`*',
     'ignore:.*`np.int` is a deprecated alias for the builtin `int`*',
     'ignore:.*`np.bool` is a deprecated alias for the builtin `bool`*',
-    'ignore:.*Using or importing the ABCs from *'
+    'ignore:.*Using or importing the ABCs from *',
 ]
