@@ -73,7 +73,7 @@ The graphical interface provides the opportunity to inspect each event and displ
 ![Graphical interface of GUI with waveforms and picks of an event and the 3D plot of the events in the database. \label{fig:GUI_example}](DUGseisGUI_V2.JPG)
 
 # Usage
-Since 2021 dozens of hydraulic stimulation experiments have been performed in the Bedretto Underground Laboratory in Switzerland [@Ma2022; @Plenkers2023]. In this context, the DUGseis package was used to detect picoseismicity by processing the incoming high-frequency waveform data in real-time and in post-processing mode [@Obermann2024]. 
+Since 2021 dozens of hydraulic stimulation experiments have been performed in the Bedretto Underground Laboratory in Switzerland [@Ma2022; @Plenkers2023; @Obermann2024]. In this context, the DUGseis package was used to detect picoseismicity by processing the incoming high-frequency waveform data in real-time and in post-processing mode [@Obermann2024]. A small seismic dataset of one of the hydraulic stimulations can be found in [].
 
 # Acknowledgements
 The submitting author, Martina Rosskopf, is funded by SNF Project “Characterizing and understanding Enhanced Geothermal Systems (EGS) - novel tools and applications in a deep underground laboratory” (200021_192151). The BedrettoLab is financed by ETH Zürich and the Werner Siemens Foundation. This paper is BULGG publication BPN_008.
