@@ -40,8 +40,6 @@ conda activate dug_seis
 pip install -e .
 ```
 
-% add example dataset on zenodo
-
 ## Example
 An example dataset to test the software can be accessed with the [Zenodo DOI](https://doi.org/10.5281/zenodo.10598393).\
 The dataset consists of a python run-file and its associated configuration file and the needed waveform and station xml files. 

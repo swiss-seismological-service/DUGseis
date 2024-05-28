@@ -44,7 +44,7 @@ dependencies = [
     "pyasdf",
     "pyopengl",
     "pyproj>=3",
-    "pyqtgraph==0.12.2",
+    "pyqtgraph==0.13.7",
     "pyside6==6.6.1",
     "pyyaml",
     "schema",
