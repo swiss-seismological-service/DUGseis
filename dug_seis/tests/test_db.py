@@ -25,10 +25,6 @@ from dug_seis.db.db import DB
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
-def _sort_origins(event):
-    event.origins = sorted(event.origins, key=lambda x: str(x.resource_id))
-
-
 def test_basic_db(tmp_path):
     url = f"sqlite://{tmp_path / 'db.sqlite'}"
     db = DB(url=url)
@@ -1213,8 +1209,8 @@ def test_write_and_read_same_picks_used_in_multiple_arrivals():
     # unused pick.
     del event.picks[0]
 
-    _sort_origins(event)
-    _sort_origins(events[0])
+    event
+    events[0]
 
     # Now they are the same.
     assert event == events[0]
@@ -1266,8 +1262,8 @@ def test_add_origin_to_event_and_change_preferred_origin():
 
     # Adding to the database should change it.
     db.update_event(event=event)
-    assert _sort_origins(db.get_objects(object_type="Event")[0]) == _sort_origins(event)
-    assert db.get_objects(object_type="Event")[0].preferred_origin() == event.origins[1]
+    assert db.get_objects(object_type="Event")[0] == event
+    assert db.get_objects(object_type="Event")[0].preferred_origin() == event.preferred_origin()
 
     assert db.count("Event") == 1
     assert db.count("Origin") == 2

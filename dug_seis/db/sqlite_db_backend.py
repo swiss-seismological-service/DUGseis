@@ -155,6 +155,8 @@ class _SQLiteBackend:
 
         results = []
 
+        sql += " ORDER BY _oid ASC"
+
         for row in self.cursor.execute(sql).fetchall():
             result = {}
             for name, r in zip(column_names, row):
@@ -588,7 +590,8 @@ class _SQLiteBackend:
                 # Origins are stored via origin references.
                 origin_refs = self.cursor.execute(
                     "SELECT _oid, _parent_oid, originID from OriginReference "
-                    f"WHERE _parent_oid in ({','.join(['?'] * len(object_results))})",
+                    f"WHERE _parent_oid in ({','.join(['?'] * len(object_results))}) "
+                    "ORDER BY _oid ASC",
                     [o._object_id for o in object_results],
                 ).fetchall()
                 if origin_refs:
