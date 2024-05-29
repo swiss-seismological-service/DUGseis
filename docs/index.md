@@ -25,6 +25,7 @@ data_processing
 graphical_interface
 database
 live_environment
+example_dataset
 .generated/modules
 ```
 
