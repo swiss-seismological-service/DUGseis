@@ -43,3 +43,7 @@ pip install -e .
 ## Example
 An example dataset to test the software can be accessed with the [Zenodo DOI](https://doi.org/10.5281/zenodo.10598393).\
 The dataset consists of a python run-file and its associated configuration file and the needed waveform and station xml files. 
+
+## Getting help
+If any problems arise, please open an issue. We will try to help and solve it as soon as possible.\
+Additionally, any feedback or contributions are welcome! In this case, please also feel free to open an issue if you have any suggestions or would like to contribute a feature.
