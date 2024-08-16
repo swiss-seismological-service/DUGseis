@@ -88,8 +88,10 @@ def amplitude_based_relative_magnitude(st_event, event):
         noise_window_start_time = pick.time - 2.5*delta_p_s
         noise_window_end_time = pick.time - 0.5 * delta_p_s
 
-        # magnitude computation is omitted when delta_p_s or signal/noise windows are not within the st_event time
-        # interval
+        # skip magnitude computation if
+        # 1) delta_p_s is negative (p pick after automatically estimated S-arrival)
+        # -> could happen if something went wrong while locating or p-pick far off
+        # 2) signal or noise windows are not within the signal/noise trace
         if (
             (delta_p_s < 0)
             or not is_time_between(
@@ -113,8 +115,8 @@ def amplitude_based_relative_magnitude(st_event, event):
                 noise_window_end_time,
             )
         ):
-            print('Possible error')
-            #continue
+            #print('Possible error')
+            continue
 
         distances.append(
             dist
