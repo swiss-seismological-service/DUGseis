@@ -1,6 +1,7 @@
 """
 Example processing script.
 """
+
 import logging
 
 import obspy

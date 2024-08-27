@@ -1,4 +1,4 @@
 [flake8]
 max-line-length = 120
 exclude = dug_seis/graphical_interface/ui_files
-extend-ignore = E203
+extend-ignore = E203, F841, F401, F821

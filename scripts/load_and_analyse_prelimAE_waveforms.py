@@ -1,6 +1,7 @@
 """
 Example processing script for loading and analysing AE waveform data from the prelimAE array of the FEAR project
 """
+
 from obspy import UTCDateTime
 import obspy
 import numpy as np
@@ -21,11 +22,9 @@ project = DUGSeisProject(config="load_and_analyse_prelimAE_waveforms.yaml")
 
 st = project.waveforms.get_waveforms(
     channel_ids=["XB.01.03.001", "XB.01.04.001"],
-    start_time=project.config['temporal_range']['start_time'],
-    end_time=project.config['temporal_range']['end_time'],
+    start_time=project.config["temporal_range"]["start_time"],
+    end_time=project.config["temporal_range"]["end_time"],
 )
-
-
 
 # %% Visualise single trace
 st_c = st.copy()
@@ -43,8 +42,6 @@ tr.filter("lowpass", freq=20000, corners=2)
 tr.spectrogram()
 
 
-
-
 # %% Visualise multiple traces
 fig = plot_time_waveform(st)
 fig.show()
@@ -59,8 +56,6 @@ fig.show()
 st2.filter("lowpass", freq=2000, corners=2)
 fig = plot_time_waveform(st2)
 fig.show()
-
-
 
 
 # More interesting plots

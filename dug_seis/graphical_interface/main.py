@@ -548,9 +548,7 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         if len(event.magnitudes) > 0:
             for magnitude in event.magnitudes:
-                magnitude_str += (
-                    f"       Magnitude: {magnitude.mag} \n"
-                )
+                magnitude_str += f"       Magnitude: {magnitude.mag} \n"
 
         text_str = (
             f"Event {event.resource_id}\n"

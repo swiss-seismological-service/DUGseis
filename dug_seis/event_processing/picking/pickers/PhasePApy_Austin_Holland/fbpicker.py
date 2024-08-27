@@ -48,7 +48,6 @@ class FBPicker:
         pol_coeff=10,
         uncert_coeff=3,
     ):
-
         """
         Parameter description:
           t_long       : the time in seconds of moving window to calculate CFn of each bandpass filtered data

@@ -196,20 +196,22 @@ class _SQLiteBackend:
                 return None
             return obspy.core.event.CreationInfo(
                 agency_id=x["creationInfo_agencyID"],
-                agency_uri=obspy.core.event.ResourceIdentifier(
-                    x["creationInfo_agencyURI"]
-                )
-                if x["creationInfo_agencyURI"]
-                else None,
+                agency_uri=(
+                    obspy.core.event.ResourceIdentifier(x["creationInfo_agencyURI"])
+                    if x["creationInfo_agencyURI"]
+                    else None,
+                ),
                 author=x["creationInfo_author"],
-                author_uri=obspy.core.event.ResourceIdentifier(
-                    x["creationInfo_authorURI"]
-                )
-                if x["creationInfo_authorURI"]
-                else None,
-                creation_time=obspy.UTCDateTime(x["creationInfo_creationTime"])
-                if x["creationInfo_creationTime"]
-                else None,
+                author_uri=(
+                    obspy.core.event.ResourceIdentifier(x["creationInfo_authorURI"])
+                    if x["creationInfo_authorURI"]
+                    else None,
+                ),
+                creation_time=(
+                    obspy.UTCDateTime(x["creationInfo_creationTime"])
+                    if x["creationInfo_creationTime"]
+                    else None,
+                ),
                 version=x["creationInfo_version"],
             )
 
@@ -245,12 +247,12 @@ class _SQLiteBackend:
                 return obspy.core.event.source.NodalPlane(**kwargs)
 
             return obspy.core.event.source.NodalPlanes(
-                nodal_plane_1=nodal_plane(x, 1)
-                if x["nodalPlanes_nodalPlane1_used"]
-                else None,
-                nodal_plane_2=nodal_plane(x, 2)
-                if x["nodalPlanes_nodalPlane2_used"]
-                else None,
+                nodal_plane_1=(
+                    nodal_plane(x, 1) if x["nodalPlanes_nodalPlane1_used"] else None
+                ),
+                nodal_plane_2=(
+                    nodal_plane(x, 2) if x["nodalPlanes_nodalPlane2_used"] else None
+                ),
                 preferred_plane=x["nodalPlanes_preferredPlane"],
             )
 
@@ -270,9 +272,11 @@ class _SQLiteBackend:
                 p_axis=axis(x, "p"),
                 # Setting the empty Axis() object is a bit an oddity but
                 # we just follow what ObsPy does here.
-                n_axis=axis(x, "n")
-                if x["principalAxes_nAxis_used"]
-                else obspy.core.event.source.Axis(),
+                n_axis=(
+                    axis(x, "n")
+                    if x["principalAxes_nAxis_used"]
+                    else obspy.core.event.source.Axis()
+                ),
             )
 
         def rid_or_none(r: typing.Optional[obspy.core.event.ResourceIdentifier]):
@@ -358,66 +362,71 @@ class _SQLiteBackend:
                 depth_errors=qe(x, "depth"),
                 depth_type=x["depthType"],
                 time_fixed=bool(x["timeFixed"]) if x["timeFixed"] is not None else None,
-                epicenter_fixed=bool(x["epicenterFixed"])
-                if x["epicenterFixed"] is not None
-                else None,
+                epicenter_fixed=(
+                    bool(x["epicenterFixed"])
+                    if x["epicenterFixed"] is not None
+                    else None
+                ),
                 reference_system_id=rid_or_none(x["referenceSystemID"]),
                 method_id=rid_or_none(x["methodID"]),
                 earth_model_id=rid_or_none(x["earthModelID"]),
-                quality=obspy.core.event.OriginQuality(
-                    associated_phase_count=x["quality_associatedPhaseCount"],
-                    used_phase_count=x["quality_usedPhaseCount"],
-                    associated_station_count=x["quality_associatedStationCount"],
-                    used_station_count=x["quality_usedStationCount"],
-                    depth_phase_count=x["quality_depthPhaseCount"],
-                    standard_error=x["quality_standardError"],
-                    azimuthal_gap=x["quality_azimuthalGap"],
-                    secondary_azimuthal_gap=x["quality_secondaryAzimuthalGap"],
-                    ground_truth_level=x["quality_groundTruthLevel"],
-                    minimum_distance=x["quality_minimumDistance"],
-                    maximum_distance=x["quality_maximumDistance"],
-                    median_distance=x["quality_medianDistance"],
-                )
-                if x["quality_used"]
-                else None,
-                origin_type=x["type"],
-                origin_uncertainty=obspy.core.event.OriginUncertainty(
-                    horizontal_uncertainty=x["uncertainty_horizontalUncertainty"],
-                    min_horizontal_uncertainty=x[
-                        "uncertainty_minHorizontalUncertainty"
-                    ],
-                    max_horizontal_uncertainty=x[
-                        "uncertainty_maxHorizontalUncertainty"
-                    ],
-                    azimuth_max_horizontal_uncertainty=x[
-                        "uncertainty_azimuthMaxHorizontalUncertainty"
-                    ],
-                    confidence_ellipsoid=obspy.core.event.ConfidenceEllipsoid(
-                        semi_major_axis_length=x[
-                            "uncertainty_confidenceEllipsoid_semiMajorAxisLength"
-                        ],
-                        semi_minor_axis_length=x[
-                            "uncertainty_confidenceEllipsoid_semiMinorAxisLength"
-                        ],
-                        semi_intermediate_axis_length=x[
-                            "uncertainty_confidenceEllipsoid_semiIntermediateAxisLength"
-                        ],
-                        major_axis_plunge=x[
-                            "uncertainty_confidenceEllipsoid_majorAxisPlunge"
-                        ],
-                        major_axis_azimuth=x[
-                            "uncertainty_confidenceEllipsoid_majorAxisAzimuth"
-                        ],
-                        major_axis_rotation=x[
-                            "uncertainty_confidenceEllipsoid_majorAxisRotation"
-                        ],
+                quality=(
+                    obspy.core.event.OriginQuality(
+                        associated_phase_count=x["quality_associatedPhaseCount"],
+                        used_phase_count=x["quality_usedPhaseCount"],
+                        associated_station_count=x["quality_associatedStationCount"],
+                        used_station_count=x["quality_usedStationCount"],
+                        depth_phase_count=x["quality_depthPhaseCount"],
+                        standard_error=x["quality_standardError"],
+                        azimuthal_gap=x["quality_azimuthalGap"],
+                        secondary_azimuthal_gap=x["quality_secondaryAzimuthalGap"],
+                        ground_truth_level=x["quality_groundTruthLevel"],
+                        minimum_distance=x["quality_minimumDistance"],
+                        maximum_distance=x["quality_maximumDistance"],
+                        median_distance=x["quality_medianDistance"],
                     )
-                    if x["uncertainty_confidenceEllipsoid_used"]
-                    else None,
-                    preferred_description=x["uncertainty_preferredDescription"],
-                )
-                if x["quality_used"]
-                else None,
+                    if x["quality_used"]
+                    else None
+                ),
+                origin_type=x["type"],
+                origin_uncertainty=(obspy.core.event.OriginUncertainty(
+                        horizontal_uncertainty=x["uncertainty_horizontalUncertainty"],
+                        min_horizontal_uncertainty=x[
+                            "uncertainty_minHorizontalUncertainty"
+                        ],
+                        max_horizontal_uncertainty=x[
+                            "uncertainty_maxHorizontalUncertainty"
+                        ],
+                        azimuth_max_horizontal_uncertainty=x[
+                            "uncertainty_azimuthMaxHorizontalUncertainty"
+                        ],
+                        confidence_ellipsoid=obspy.core.event.ConfidenceEllipsoid(
+                            semi_major_axis_length=x[
+                                "uncertainty_confidenceEllipsoid_semiMajorAxisLength"
+                            ],
+                            semi_minor_axis_length=x[
+                                "uncertainty_confidenceEllipsoid_semiMinorAxisLength"
+                            ],
+                            semi_intermediate_axis_length=x[
+                                "uncertainty_confidenceEllipsoid_semiIntermediateAxisLength"
+                            ],
+                            major_axis_plunge=x[
+                                "uncertainty_confidenceEllipsoid_majorAxisPlunge"
+                            ],
+                            major_axis_azimuth=x[
+                                "uncertainty_confidenceEllipsoid_majorAxisAzimuth"
+                            ],
+                            major_axis_rotation=x[
+                                "uncertainty_confidenceEllipsoid_majorAxisRotation"
+                            ],
+                        )
+                        if x["uncertainty_confidenceEllipsoid_used"]
+                        else None,
+                        preferred_description=x["uncertainty_preferredDescription"],
+                    )
+                    if x["quality_used"]
+                    else None
+                ),
                 evaluation_mode=x["evaluationMode"],
                 evaluation_status=x["evaluationStatus"],
                 creation_info=ci(x),
@@ -472,9 +481,11 @@ class _SQLiteBackend:
                 iso=x["iso"],
                 greens_function_id=rid_or_none(x["greensFunctionID"]),
                 filter_id=rid_or_none(x["filterID"]),
-                source_time_function=obspy.core.event.source.SourceTimeFunction()
-                if x["sourceTimeFunction_used"] == 1
-                else None,
+                source_time_function=(
+                    obspy.core.event.source.SourceTimeFunction()
+                    if x["sourceTimeFunction_used"] == 1
+                    else None
+                ),
                 method_id=rid_or_none(x["methodID"]),
             ),
             "FocalMechanism": lambda x: obspy.core.event.FocalMechanism(
@@ -501,13 +512,15 @@ class _SQLiteBackend:
                 period=x["period_value"],
                 period_errors=qe(x, "period"),
                 snr=x["snr"],
-                time_window=obspy.core.event.base.TimeWindow(
-                    begin=x["timeWindow_begin"],
-                    end=x["timeWindow_end"],
-                    reference=x["timeWindow_reference"],
-                )
-                if x["timeWindow_used"]
-                else None,
+                time_window=(
+                    obspy.core.event.base.TimeWindow(
+                        begin=x["timeWindow_begin"],
+                        end=x["timeWindow_end"],
+                        reference=x["timeWindow_reference"],
+                    )
+                    if x["timeWindow_used"]
+                    else None
+                ),
                 pick_id=rid_or_none(x["pickID"]),
                 waveform_id=wf(x),
                 filter_id=rid_or_none(x["filterID"]),
@@ -825,24 +838,24 @@ class _SQLiteBackend:
                     if v.confidence_ellipsoid is not None:
                         e = v.confidence_ellipsoid
                         new_d["uncertainty_confidenceEllipsoid_used"] = 1
-                        new_d[
-                            "uncertainty_confidenceEllipsoid_semiMajorAxisLength"
-                        ] = e.semi_major_axis_length
-                        new_d[
-                            "uncertainty_confidenceEllipsoid_semiMinorAxisLength"
-                        ] = e.semi_minor_axis_length
-                        new_d[
-                            "uncertainty_confidenceEllipsoid_semiIntermediateAxisLength"
-                        ] = e.semi_intermediate_axis_length
-                        new_d[
-                            "uncertainty_confidenceEllipsoid_majorAxisPlunge"
-                        ] = e.major_axis_plunge
-                        new_d[
-                            "uncertainty_confidenceEllipsoid_majorAxisAzimuth"
-                        ] = e.major_axis_azimuth
-                        new_d[
-                            "uncertainty_confidenceEllipsoid_majorAxisRotation"
-                        ] = e.major_axis_rotation
+                        new_d["uncertainty_confidenceEllipsoid_semiMajorAxisLength"] = (
+                            e.semi_major_axis_length
+                        )
+                        new_d["uncertainty_confidenceEllipsoid_semiMinorAxisLength"] = (
+                            e.semi_minor_axis_length
+                        )
+                        new_d["uncertainty_confidenceEllipsoid_semiIntermediateAxisLength"] = (
+                            e.semi_intermediate_axis_length
+                        )
+                        new_d["uncertainty_confidenceEllipsoid_majorAxisPlunge"] = (
+                            e.major_axis_plunge
+                        )
+                        new_d["uncertainty_confidenceEllipsoid_majorAxisAzimuth"] = (
+                            e.major_axis_azimuth
+                        )
+                        new_d["uncertainty_confidenceEllipsoid_majorAxisRotation"] = (
+                            e.major_axis_rotation
+                        )
                     else:
                         new_d["uncertainty_confidenceEllipsoid_used"] = 0
 
@@ -853,18 +866,18 @@ class _SQLiteBackend:
                         )
 
                     new_d["uncertainty_preferredDescription"] = v.preferred_description
-                    new_d[
-                        "uncertainty_horizontalUncertainty"
-                    ] = v.horizontal_uncertainty
-                    new_d[
-                        "uncertainty_minHorizontalUncertainty"
-                    ] = v.min_horizontal_uncertainty
-                    new_d[
-                        "uncertainty_maxHorizontalUncertainty"
-                    ] = v.max_horizontal_uncertainty
-                    new_d[
-                        "uncertainty_azimuthMaxHorizontalUncertainty"
-                    ] = v.azimuth_max_horizontal_uncertainty
+                    new_d["uncertainty_horizontalUncertainty"] = (
+                        v.horizontal_uncertainty
+                    )
+                    new_d["uncertainty_minHorizontalUncertainty"] = (
+                        v.min_horizontal_uncertainty
+                    )
+                    new_d["uncertainty_maxHorizontalUncertainty"] = (
+                        v.max_horizontal_uncertainty
+                    )
+                    new_d["uncertainty_azimuthMaxHorizontalUncertainty"] = (
+                        v.azimuth_max_horizontal_uncertainty
+                    )
 
                 # Creation info.
                 elif k == "creationInfo":
@@ -925,9 +938,9 @@ class _SQLiteBackend:
                     "phaseHint_code": pick.phase_hint,
                     "phaseHint_used": 1 if pick.phase_hint else 0,
                     "backazimuth_value": pick.backazimuth,
-                    "backazimuth_errors": pick.backazimuth_errors
-                    if pick.backazimuth_errors
-                    else None,
+                    "backazimuth_errors": (
+                        pick.backazimuth_errors if pick.backazimuth_errors else None
+                    ),
                     "onset": pick.onset,
                     "polarity": pick.polarity,
                     "evaluationMode": pick.evaluation_mode,
@@ -1006,9 +1019,9 @@ class _SQLiteBackend:
                     "quality": origin.quality,
                     "quality_used": 1 if origin.quality is not None else 0,
                     "uncertainty": origin.origin_uncertainty,
-                    "uncertainty_used": 1
-                    if origin.origin_uncertainty is not None
-                    else 0,
+                    "uncertainty_used": (
+                        1 if origin.origin_uncertainty is not None else 0
+                    ),
                     "type": origin.origin_type,
                     "evaluationMode": origin.evaluation_mode,
                     "evaluationStatus": origin.evaluation_status,
@@ -1030,12 +1043,12 @@ class _SQLiteBackend:
                     # XXX: These three don't have a direct representation in
                     # QuakeML. For now they are interpreted like this.
                     "timeUsed": 1 if arrival.time_residual is not None else 0,
-                    "horizontalSlownessUsed": 1
-                    if arrival.horizontal_slowness_residual is not None
-                    else 0,
-                    "backazimuthUsed": 1
-                    if arrival.backazimuth_residual is not None
-                    else 0,
+                    "horizontalSlownessUsed": (
+                        1 if arrival.horizontal_slowness_residual is not None else 0
+                    ),
+                    "backazimuthUsed": (
+                        1 if arrival.backazimuth_residual is not None else 0
+                    ),
                     # XXX: We cannot fill the weight as QuakeML has individual
                     # weights for the times, the horizontal slowness, and the
                     # backazimuth.
@@ -1081,9 +1094,9 @@ class _SQLiteBackend:
                     "filterID": mt.filter_id,
                     # Dealt with in the common transforms.
                     "sourceTimeFunction": mt.source_time_function,
-                    "sourceTimeFunction_used": 1
-                    if mt.source_time_function is not None
-                    else 0,
+                    "sourceTimeFunction_used": (
+                        1 if mt.source_time_function is not None else 0
+                    ),
                     "methodID": mt.method_id,
                     "creationInfo": mt.creation_info,
                 },
@@ -1115,9 +1128,9 @@ class _SQLiteBackend:
                     "amplitude_value": a.generic_amplitude,
                     "amplitude_errors": a.generic_amplitude_errors,
                     "amplitude_used": 1 if a.generic_amplitude is not None else 0,
-                    "timeWindow_reference": a.time_window.reference
-                    if a.time_window
-                    else None,
+                    "timeWindow_reference": (
+                        a.time_window.reference if a.time_window else None
+                    ),
                     "timeWindow_begin": a.time_window.begin if a.time_window else None,
                     "timeWindow_end": a.time_window.end if a.time_window else None,
                     "timeWindow_used": 1 if a.time_window else 0,

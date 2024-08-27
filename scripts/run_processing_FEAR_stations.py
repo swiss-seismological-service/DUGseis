@@ -1,6 +1,7 @@
 """
 Example processing script.
 """
+
 import logging
 from obspy import UTCDateTime
 
@@ -22,8 +23,8 @@ from dug_seis.event_processing.magnitudes.amplitude_based_magnitudes import (
     amplitude_based_relative_magnitude,
 )
 
-#from dug_seis.plotting.plotting import *
-#from dug_seis.plotting.plotting_MAM import *
+# from dug_seis.plotting.plotting import *
+# from dug_seis.plotting.plotting_MAM import *
 from dug_seis.plotting.plotting import (
     get_time_vector,
     plot_time_waveform,
@@ -44,14 +45,18 @@ logger = logging.getLogger(__name__)
 project = DUGSeisProject(config="run_processing_FEAR_stations.yaml")
 
 # Overwrite start and end times
-#project.config['temporal_range']['start_time'] = UTCDateTime('2022-12-07T12:00:00.000000Z')
-#project.config['temporal_range']['end_time'] = UTCDateTime('2022-12-07T12:00:05.000000Z')
+# project.config['temporal_range']['start_time'] = UTCDateTime('2022-12-07T12:00:00.000000Z')
+# project.config['temporal_range']['end_time'] = UTCDateTime('2022-12-07T12:00:05.000000Z')
 
 # Helper function to compute intervals over the project.
-duration_single_interval = np.ceil(project.waveforms.endtime - project.waveforms.starttime)
+duration_single_interval = np.ceil(
+    project.waveforms.endtime - project.waveforms.starttime
+)
 
 intervals = util.compute_intervals(
-    project=project, interval_length_in_seconds=duration_single_interval, interval_overlap_in_seconds=0.1
+    project=project,
+    interval_length_in_seconds=duration_single_interval,
+    interval_overlap_in_seconds=0.1,
 )
 
 total_event_count = 0
@@ -59,8 +64,8 @@ total_event_count = 0
 for interval_start, interval_end in tqdm.tqdm(intervals):
     # Run the trigger only on a few waveforms.
     st_triggering = project.waveforms.get_waveforms(
-        channel_ids=["XB.01.03.001","XB.01.04.001"],
-        #channel_ids=[
+        channel_ids=["XB.01.03.001", "XB.01.04.001"],
+        # channel_ids=[
         #    "XB.01.01.001",
         #    "XB.01.02.001",
         #    "XB.01.03.001",
@@ -69,39 +74,31 @@ for interval_start, interval_end in tqdm.tqdm(intervals):
         #    "XB.01.06.001",
         #    "XB.01.07.001",
         #    "XB.01.08.001",
-        #],
+        # ],
         start_time=interval_start,
         end_time=interval_end,
     )
 
-#st_triggering.plot()
+# st_triggering.plot()
 
 # Single out a trace
-#tr = st_triggering[0]
+# tr = st_triggering[0]
 
 # Trim to shorter duration
-#dt = tr.stats.starttime
-#tr.trim(dt, dt + 0.01)
+# dt = tr.stats.starttime
+# tr.trim(dt, dt + 0.01)
 
-#tr.plot()
-#tr.spectrogram()
+# tr.plot()
+# tr.spectrogram()
 
 t = get_time_vector(st_triggering)
 print(t)
 plot_time_waveform(st_triggering)
 
 
-
-
 # Customise spectrogram
 
 # Plot amplitude spectrum
-
-
-
-
-
-
 
 """
     # Get noise levels, standard obspy
@@ -249,4 +246,4 @@ logger.info("DONE.")
 logger.info(f"Found {total_event_count} events.")
 
 # Possibly dump the database as a list of quakeml files.
-#project.db.dump_as_quakeml_files(folder="quakeml")
+# project.db.dump_as_quakeml_files(folder="quakeml")

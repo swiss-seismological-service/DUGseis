@@ -371,7 +371,7 @@ class DUGSeisProject:
             # if extra_channels_in_meta_data:
             #     raise ValueError(msg)
             # Otherwise only warn.
-            #elif extra_channels_in_data:
+            # elif extra_channels_in_data:
             #   logger.warn(msg)
 
         self.__waveform_handler = wh

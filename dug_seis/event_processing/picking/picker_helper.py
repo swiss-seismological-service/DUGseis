@@ -19,6 +19,7 @@ Script that contains various helper functions for picker.
 """
 import numpy as np
 
+
 def mask_list_indices(lst, indices):
     """
     Function that masks list depending on indices.
@@ -47,7 +48,9 @@ def time_delta_between_picks(picks, thr_time_deltas):
     # find time deltas below threshold
     ind_low_time_delta = np.unique(np.where(time_deltas <= thr_time_deltas))
     nr_low_time_deltas = len(ind_low_time_delta)
-    ind_high_time_delta = np.setdiff1d(np.arange(0, len(time_deltas), 1, dtype=int), ind_low_time_delta)
+    ind_high_time_delta = np.setdiff1d(
+        np.arange(0, len(time_deltas), 1, dtype=int), ind_low_time_delta
+    )
     nr_high_time_deltas = len(ind_high_time_delta)
     picks_masked = mask_list_indices(picks, ind_high_time_delta)
     return picks_masked, nr_low_time_deltas, nr_high_time_deltas

@@ -43,7 +43,7 @@ def coincidence_trigger(
     details=False,
     event_templates={},
     similarity_threshold=0.7,
-    **options
+    **options,
 ):
     """
     Perform a network coincidence trigger.
@@ -187,11 +187,15 @@ def coincidence_trigger(
         else:
             kernel_size = 2000
             kernel = np.ones(kernel_size) / kernel_size
-            data_filtered = np.convolve(tr.data, kernel, mode='same')
-            time = np.arange(0, len(data_filtered)) * 1 / st.traces[0].stats.sampling_rate
+            data_filtered = np.convolve(tr.data, kernel, mode="same")
+            time = (
+                np.arange(0, len(data_filtered)) * 1 / st.traces[0].stats.sampling_rate
+            )
             data_filtered_dif = np.gradient(data_filtered) / np.gradient(time)
-            data_filtered_dif_filtered = np.convolve(data_filtered_dif, kernel, mode='same')
-            tr.data = -1 * data_filtered_dif_filtered/1000
+            data_filtered_dif_filtered = np.convolve(
+                data_filtered_dif, kernel, mode="same"
+            )
+            tr.data = -1 * data_filtered_dif_filtered / 1000
             # end of adjustments
         kwargs["max_len"] = int(max_trigger_length * tr.stats.sampling_rate + 0.5)
 
@@ -202,7 +206,7 @@ def coincidence_trigger(
             tr.data,
             util_val_of_scalar_or_list(thr_on, idx),
             util_val_of_scalar_or_list(thr_off, idx),
-            **kwargs
+            **kwargs,
         )
         # end of adjustments
         for on, off in tmp_triggers:

@@ -17,24 +17,26 @@
 """
 Script that contains various plotting functions.
 """
+
 import numpy as np
 import matplotlib.pyplot as plt
 from obspy.signal.trigger import recursive_sta_lta
 
 
 def nextpow2(N):
-    """ Function for finding the next power of 2 """
+    """Function for finding the next power of 2"""
     n = 1
-    while n < N: n *= 2
+    while n < N:
+        n *= 2
     return n
 
 
 def cm_to_inch(value):
-    return value/2.54
+    return value / 2.54
 
 
 def amp_fft(signal, sampling_rate, pad=1, window=False, resample_log=False):
-    """ Function to get single sided fft"""
+    """Function to get single sided fft"""
     signal = signal - np.mean(signal)  # detrend
     hann = np.hanning(len(signal))
     total_length_signal = nextpow2(len(signal) * pad)
@@ -44,15 +46,21 @@ def amp_fft(signal, sampling_rate, pad=1, window=False, resample_log=False):
     elif window is False:
         signal_fft = np.fft.fft(signal, n=total_length_signal)
 
-    signal_fft = signal_fft[0:int(total_length_signal / 2 + 1)]
+    signal_fft = signal_fft[0 : int(total_length_signal / 2 + 1)]
     signal_fft = signal_fft / len(signal)  # normalise
     signal_fft[1:-1] = signal_fft[1:-1] * 2  # single sided, that is why times two
-    freq = np.arange(0, sampling_rate / 2 + sampling_rate / total_length_signal, sampling_rate / total_length_signal)
+    freq = np.arange(
+        0,
+        sampling_rate / 2 + sampling_rate / total_length_signal,
+        sampling_rate / total_length_signal,
+    )
     res = freq[1:2][0]
 
     if resample_log:
         freq_int = np.logspace(0.1, 5, num=10000)
-        signal_fft_interp = np.interp(freq_int, freq, signal_fft, left=None, right=None, period=None)
+        signal_fft_interp = np.interp(
+            freq_int, freq, signal_fft, left=None, right=None, period=None
+        )
         return signal_fft_interp, freq_int, res
     else:
         return signal_fft, freq, res
@@ -152,6 +160,7 @@ def plot_time_waveform(stream, markers="no"):
     )
     return fig
 
+
 def plot_time_waveform_picks(stream, picks):
     fig = plot_time_waveform(stream)
     for index_pick, pick in enumerate(picks):
@@ -160,13 +169,17 @@ def plot_time_waveform_picks(stream, picks):
             if pick_id == stream.traces[index_trace].id:
                 time = (pick.time - trace.stats.starttime) * 1000  # relative pick time in ms
                 fig.axes[index_trace].vlines(
-                    time, fig.axes[index_trace].get_ylim()[0] * 0.5,
+                    time,
+                    fig.axes[index_trace].get_ylim()[0] * 0.5,
                     fig.axes[index_trace].get_ylim()[1] * 0.5,
-                    color="r", linewidth=4)
+                    color="r",
+                    linewidth=4,
+                )
             else:
                 continue
     fig.set_size_inches(11.69, 8.27)
     return fig
+
 
 def plot_time_characteristic_function(stream, nsta, nlta):
     # chose plotting style

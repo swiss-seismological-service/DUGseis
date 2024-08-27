@@ -272,8 +272,9 @@ def sta_lta(stream, st_window, lt_window, thresholds):
             )
             # calculate snr
             try:
-                snr = max(abs(trace.data[trig[0][0] + 10:trig[0][0] + 100])) / max(
-                    abs(trace.data[trig[0][0] - 100:trig[0][0] - 10]))
+                snr = max(abs(trace.data[trig[0][0] + 10 : trig[0][0] + 100])) / max(
+                    abs(trace.data[trig[0][0] - 100 : trig[0][0] - 10])
+                )
             except ValueError:
                 continue
 

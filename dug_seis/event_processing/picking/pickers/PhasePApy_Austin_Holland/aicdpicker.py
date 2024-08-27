@@ -33,7 +33,6 @@ class AICDPicker:
         pol_coeff=10,
         uncert_coeff=3,
     ):
-
         """
         Parameter description:
           t_ma         : the time in seconds of the moving average window for dynamic threshold

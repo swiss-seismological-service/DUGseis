@@ -5,6 +5,7 @@ to monitor certain directories and process newly incoming data.
 Parts of this could be wrapped in other functions - that really depends on how
 it will be used in the end.
 """
+
 import copy
 import logging
 import pathlib
