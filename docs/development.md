@@ -10,7 +10,7 @@ The acquisition companion code can be found here: [https://github.com/swiss-seis
 
 ## Directory Structure
 
-As of Juni 2021 the directory structure is approximately as follows:
+As of August 2024 the directory structure is approximately as follows:
 
 ```
 .
@@ -24,15 +24,17 @@ As of Juni 2021 the directory structure is approximately as follows:
 │   ├── db
 │   ├── event_processing
 │   ├── graphical_interface
+│   ├── plotting
 │   ├── project
-│   ├── pytest.ini
 │   ├── tests
 │   ├── util.py
 │   └── waveform_handler
 ├── scripts
 │   └── ...
+├── paper
+│   └── ...
 ├── ...
-└── setup.py
+└── pyproject.toml
 ```
 
 * `README.md`: Root level readme file.
@@ -42,16 +44,17 @@ As of Juni 2021 the directory structure is approximately as follows:
 * `dug_seis/coordinate_transforms.py`: Coordinate transformations.
 * `dug_seis/db`: Submodule implementing the SeisComP compatible database
   interface.
-* `dug_seis/event_processing`: Submodule containing all detectors, pickers, ...
+* `dug_seis/event_processing`: Submodule containing all detectors, pickers, location algorithms, magnitude estimation, ...
 * `dug_seis/graphical_interface`: Submodule for the graphical Qt interface.
+* `dug_seis/plotting`: Submodule with plotting functions.
 * `dug_seis/project`: Submodule implementing the `DUGSeisProject` class.
 * `dug_seis/pytest.ini`: Configuration file for the unit tests.
 * `dug_seis/tests`: Unit tests for the `DUGSeis` package.
 * `dug_seis/util.py`: Utility functions useful across `DUGSeis`.
-* `dug_seis/waveform_handler`: Low-level implementation of the waveform data
-  access.
+* `dug_seis/waveform_handler`: Low-level implementation of the waveform data access.
 * `scripts`: A collection of useful scripts and examples.
-* `setup.py`: Setup script teaching Python how to install `DUGSeis`.
+* `paper`: Paper files with figures and references.
+* `pyproject.toml`: Configuration file to install `DUGSeis`.
 
 ## Testing
 
