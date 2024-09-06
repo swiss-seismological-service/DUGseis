@@ -196,22 +196,20 @@ class _SQLiteBackend:
                 return None
             return obspy.core.event.CreationInfo(
                 agency_id=x["creationInfo_agencyID"],
-                agency_uri=(
-                    obspy.core.event.ResourceIdentifier(x["creationInfo_agencyURI"])
-                    if x["creationInfo_agencyURI"]
-                    else None,
-                ),
+                agency_uri=obspy.core.event.ResourceIdentifier(
+                    x["creationInfo_agencyURI"]
+                )
+                if x["creationInfo_agencyURI"]
+                else None,
                 author=x["creationInfo_author"],
-                author_uri=(
-                    obspy.core.event.ResourceIdentifier(x["creationInfo_authorURI"])
-                    if x["creationInfo_authorURI"]
-                    else None,
-                ),
-                creation_time=(
-                    obspy.UTCDateTime(x["creationInfo_creationTime"])
-                    if x["creationInfo_creationTime"]
-                    else None,
-                ),
+                author_uri=obspy.core.event.ResourceIdentifier(
+                    x["creationInfo_authorURI"]
+                )
+                if x["creationInfo_authorURI"]
+                else None,
+                creation_time=obspy.UTCDateTime(x["creationInfo_creationTime"])
+                if x["creationInfo_creationTime"]
+                else None,
                 version=x["creationInfo_version"],
             )
 

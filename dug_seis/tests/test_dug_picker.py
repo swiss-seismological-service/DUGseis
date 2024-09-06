@@ -15,8 +15,7 @@ def test_dug_picker_sta_lta():
         picker_opts={
             "st_window": 70,
             "lt_window": 700,
-            "threshold_on": 3.0,
-            "threshold_off": 0.5,
+            "thresholds": [3.0]*len(st),
         },
     )
 
