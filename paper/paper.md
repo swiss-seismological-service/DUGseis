@@ -49,34 +49,38 @@ bibliography: paper.bib
 
 # Summary
 Detecting earthquakes and compiling them to earthquake catalogs are fundamental tasks in seismology. 
-Acoustic emission sensors allow the detection of tiniest so called picoseismic events, representing fractures on the mm, 
-cm or dm scale (-6<magnitude<0). Such picoseismic events have corner frequencies of 1 kHz-1 MHz and cannot be 
-handled by standard seismic processing softwares that deal with signals <500 Hz. Other commercial software 
-for monitoring picoseismicity (e.g. from GMuG - Gesellschaft für Materialprüfung und Geophysik) for structural health
-monitoring applications, e.g., in mines, exists but are 
-only trigger-based. For large-scale experiments in underground laboratories (e.g., hydraulic stimulation, 
-earthquake nucleation, nuclear waste disposal), continuous recordings of the seismicity data streams in the MHz 
-range are required to study the rock response in great detail. The DUGseis software package fills this gap. 
-It has been developed to manage, process and visualize continuous, high-frequency seismic data. The package can be 
-used to create real-time and post-processing earthquake catalogs and to directly visualize their 
-event waveforms and locations in a graphical interface. As the software is Python-based, users can easily 
-add their own processing routines.
+Acoustic emission sensors allow the detection of tiniest so called picoseismic events, representing fractures on the 
+cm or dm scale (-5<magnitude<0), even smaller seismic events are recorded in the laboratory. Picoseismic events have 
+corner frequencies of 1 kHz-100 kHz. They are typically recorded with sampling frequencies of 200 kHz to 1 MHz and cannot be 
+handled by standard seismic processing software that is developed for signals with frequencies f<500 Hz. Commercial software 
+for continuous recording and processing of picoseismicity exists (e.g. GMuG-conti, fastloc.REEL) and is successfully used 
+in scientific in-situ experiments (e.g. hydraulic stimulation, earthquake nucleation, nuclear waste disposal). However,
+commercial software comes with restrictions unfavorable for university-based in-situ experiments in underground 
+laboratories, where tailoring the software to experiment specific questions or adding newly developed analysis 
+techniques are routine operations in order to advance the study of the rock response in great detail. 
+The open-source DUGseis software package fills this gap. It has been developed to manage, process and visualize 
+continuous, high-frequency seismic data. The package can be used to create real-time and post-processing earthquake 
+catalogs and to directly visualize their event waveforms and locations in a graphical interface. As the software is 
+Python-based, users can easily add their own processing routines.
 
 # Statement of need
 The open-source, Python-based DUGseis package is designed to align with the functionalities of 
-SeisComP [@seiscomp], a standard software used in microseismic-large scale earthquake processing (<500Hz, M>-0.5). 
-DUGseis is tailored for picoseismic events (-6<M<0) with much higher frequency ranges (kHz-MHz), as recorded by 
+SeisComP [@seiscomp], a standard software used in microseismic large-scale earthquake processing (<500Hz, M>-0.5). 
+DUGseis is tailored for picoseismic events (-5<M<0) with much higher frequency ranges between 1 kHz - 100 kHz [@Plenkers2022], as recorded by 
 acoustic emission sensors (AE sensors). High-frequency seismic data processing is common in mining environments to 
-monitor tunnel stability and has become very popular in underground laboratories. To date, these projects used
-trigger-based recordings, which means that the incoming waveform data is only saved to disk when a pre-set 
+monitor tunnel stability and has become very popular in underground laboratories [@Plenkers2022]. To date, many projects 
+used commercial software (e.g. GMuG-conti from GMuG Gesellschaft für Materialprüfung und Geophysik, Bad Nauheim/Germany,
+www.gmug.eu or fastloc.REEL from Grzegorz Kwiatek, www.induced.pl/software/fastloc-reel) 
+lacking the flexibility to adapt to the specific needs of the project since they are not open-source. Additionally, many projects 
+used trigger-based recordings, which means that the incoming waveform data is only saved to disk when a pre-set 
 trigger threshold is reached by a recorded event. A disadvantage of the triggered recording strategy is the 
 so-called dead time. Once an event has been triggered, no further event can be triggered until the processing of 
 the first triggered event has been completed. The dead time can be a multiple of the recording time, meaning that 
 important events can be missed if another event has just occurred before. Eliminating this dead time is important 
 when high event rates are expected. With DUGseis it is possible to record and store [@DugSeisAcqui] continuous 
-waveform data in the MHz range and process the data directly, removing these dead times. As DUGseis is Python-based,
+waveform data in the MHz range and process the data directly, removing these dead times. As DUGseis is open-source and Python-based,
 researchers have the flexibility to complement the processing with their own Python-based 
-codes, adapted to the need of their project. 
+codes, adapted to the need of their project. Compared to commercial software this flexibility of DUGseis is a major advantage.
 
 # Functionality and Features
 The DUGseis software is a Python-based package that focuses on processing continuous high-frequency data, 
@@ -131,7 +135,7 @@ layout of the graphical user interface.\
 The GUI provides the ability to inspect each event and view the channels that recorded 
 the event. In addition, manual repicking and relocating can be done here. 
 
-![Graphical interface of GUI with waveforms and picks of an event and the 3D plot of the events in the database. \label{fig:GUI_example}](DUGseisGUI_V3.JPG)
+![Graphical interface of GUI with waveforms and picks of an event and the 3D plot of the events in the database. Data from @DUGseisExample. \label{fig:GUI_example}](DUGseisGUI_V3.JPG)
 
 # Usage
 Since 2021 dozens of hydraulic stimulation experiments have been performed at the Bedretto Underground 
