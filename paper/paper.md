@@ -145,7 +145,7 @@ in post-processing mode [@Obermann2024]. A small seismic dataset from one of the
 found in [@DUGseisExample].
 
 # Acknowledgements
-The submitting author, Martina Rosskopf, is funded by SNF Project “Characterizing and understanding Enhanced 
+We thank Katrin Plenkers for her contributions to the DUGseis software. The submitting author, Martina Rosskopf, is funded by SNF Project “Characterizing and understanding Enhanced 
 Geothermal Systems (EGS) - novel tools and applications in a deep underground laboratory” (200021_192151). The 
 BedrettoLab is financed by ETH Zürich and the Werner Siemens Foundation. This paper is BULGG publication BPN_023.
 
