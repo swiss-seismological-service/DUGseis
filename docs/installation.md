@@ -8,7 +8,7 @@
 * `click`
 * `joblib`
 * `numba`
-* `numpy`
+* `numpy<2.0`
 * `obspy`
 * `pyasdf`
 * `pyopengl`
