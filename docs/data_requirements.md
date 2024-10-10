@@ -37,7 +37,7 @@ adjacent files are expected to match exactly timing wise.
 
 ## StationXML Meta Data
 
-Meta data, e.g. location and instrument response information, must be available
+Metadata, e.g., location and instrument response information, must be available
 for each channel. The channel identifiers must exactly match the channel
 identifiers in the ASDF files.
 

@@ -9,7 +9,7 @@ authors = [
     { name = "ETHZ" },
     { name = "Joseph Doetsch"},
     { name = "Linus Villiger", email = "linus.villiger@sed.ethz.ch" },
-    { name = "Martina Rosskopf", email = "martina.rosskopf@erdw.ethz.ch" },
+    { name = "Martina Rosskopf", email = "martina.rosskopf@eaps.ethz.ch" },
     { name = "Virginie Durand"},
     { name = "Anne Obermann"},
     { name = "Lion Krischer"},

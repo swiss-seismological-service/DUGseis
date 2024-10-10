@@ -20,7 +20,7 @@
 * `scipy`
 * `tqdm`
 
-Furthermore `git` is required to get the `DUGSeis` code.
+Furthermore `git` is an option to download the `DUGSeis` code. Alternatively, the code can be downloaded as a zip file from the GitHub repository.
 
 ## Installation Instructions
 

@@ -114,8 +114,13 @@ edited with the [Qt Creator](https://www.qt.io/product/development-tools).
 
 Once the UI files have been edited they can be converted to Python files like this:
 
+For windows:
 ```bash
 pyside6-uic .\main_window.ui -o main_window.py
+```
+For Linux/Mac:
+```bash
+pyside6-uic ./main_window.ui -o main_window.py
 ```
 
 It works the same for the other UI files.
