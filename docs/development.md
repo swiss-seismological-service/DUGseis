@@ -72,7 +72,7 @@ test a decent chunk of the complicated part of it and thus should always work.
 ## Linting
 
 To adhere to the style guide and avoid silly errors always make sure `black` and
-`flake8` pass (`pip install flake8 black`).
+`flake8` pass (`pip install DUG-Seis[linting]`).
 
 Just run the following in the `DUGSeis` source code directory:
 
@@ -92,7 +92,7 @@ The documentation resides in the `docs` directory. It depends on the following p
 * `sphinx-book-theme`
 * `myst-parser`
 
-Once these are installed, just change to the docs directory and execute
+Once these are installed (`pip install DUG-Seis[docsbuild]`), just change to the docs directory and execute
 
 ```bash
 make html

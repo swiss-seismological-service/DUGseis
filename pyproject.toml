@@ -52,6 +52,17 @@ dependencies = [
     "tqdm",
 ]
 
+[project.optional-dependencies]
+linting = [
+    "black",
+    "flake8",
+]
+docsbuild = [
+    "sphinx",
+    "sphinx-book-theme",
+    "myst-parser",
+]
+
 [project.urls]
 Homepage = "https://dugseis.readthedocs.io"
 Documentation = "https://dugseis.readthedocs.io"
