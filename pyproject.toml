@@ -20,7 +20,7 @@ authors = [
 name = "DUG-Seis"
 version = "0.3"
 description = "Processing, data management, and visualization of micro-seismic data."
-requires-python = "=3.11"
+requires-python = "==3.11.*"
 license = { text = "LGPL" }
 keywords = ["induced seismicity", "seismology"]
 classifiers = [
