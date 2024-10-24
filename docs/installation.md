@@ -4,7 +4,7 @@
 
 `DUGSeis` is a Python package and has the following dependencies:
 
-* `Python = 3.11`
+* `Python >= 3.11`
 * `click`
 * `joblib`
 * `numba`
