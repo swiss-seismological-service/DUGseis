@@ -127,7 +127,7 @@ After processing, the output of the events, including arrivals and picks, is sto
 database and can also be saved as QuakeML or CSV files.
 
 ***Graphical Interface***\
-Another feature of DUGSeis is its ability to visualize the recorded waveform data and to allow manual repicking and 
+Another feature of DUGseis is its ability to visualize the recorded waveform data and to allow manual repicking and 
 relocating, both in real-time and in post-processing. The graphical interface (GUI) displays not only waveforms, but also 
 the output of the processing stage, such as the origin and pick times of an event. Additionally, 
 the event and sensor locations are shown in a 3D visualization. \autoref{fig:GUI_example} shows the 
